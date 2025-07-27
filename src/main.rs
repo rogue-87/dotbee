@@ -1,3 +1,17 @@
+mod cli;
+mod commands;
+use clap::Parser;
+use cli::{Cli, Commands};
+
 fn main() {
-    println!("Hello, world!");
+    let args = Cli::parse();
+
+    match args.command {
+        Commands::Init { name } => commands::init::run(name),
+        Commands::List {} => todo!(),
+        Commands::Purge {} => todo!(),
+        Commands::Repair {} => todo!(),
+        Commands::Status {} => todo!(),
+        Commands::Switch { host } => todo!(),
+    }
 }
