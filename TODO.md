@@ -2,14 +2,14 @@
 
 ## Core Features
 
-- [ ] Implement `dotsy init <name>`
+- [x] Implement `dotsy init <name>`
   - Create dotfiles root folder structure with `hosts/` and default `global/`.
-  - Prompts user when there's an already existing config file (write over, ignore or adopt)
 - [ ] Implement `dotsy list`
   - List all available hosts inside the `hosts/` folder.
 - [ ] Implement `dotsy switch <host>`
   - Remove current active symlinks.
   - Symlink files from `hosts/global` and `hosts/<host>` into home directory.
+  - Prompts user when there's an already existing config file (write over, ignore or adopt)
   - Update the state file with the active host.
 - [ ] Implement `dotsy purge`
   - Remove all active symlinks.
