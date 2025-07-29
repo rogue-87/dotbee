@@ -12,6 +12,9 @@
   - Symlink files from `hosts/global` and `hosts/<host>` into home directory.
   - Prompts user when there's an already existing config file (write over, ignore or adopt)
   - Update the state file with the active host.
+- [ ] Implement `dotsy status`.
+  - Shows the status of the selected host
+  - Displays each config whether it's symlink is broken or not
 - [ ] Implement `dotsy purge`
   - Remove all active symlinks.
   - Clear/reset the state file.
