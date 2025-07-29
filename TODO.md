@@ -4,8 +4,9 @@
 
 - [x] Implement `dotsy init <name>`
   - Create dotfiles root folder structure with `hosts/` and default `global/`.
-- [ ] Implement `dotsy list`
+- [x] Implement `dotsy list`
   - List all available hosts inside the `hosts/` folder.
+  - List their configs(a config is a collection of configuration files)
 - [ ] Implement `dotsy switch <host>`
   - Remove current active symlinks.
   - Symlink files from `hosts/global` and `hosts/<host>` into home directory.
