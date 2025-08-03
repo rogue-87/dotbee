@@ -3,7 +3,7 @@ use std::path::Path;
 use walkdir::WalkDir;
 
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
-    println!("Available {} and {}", "hosts".green(), "configs".yellow());
+    println!("Available hosts:");
 
     let root = Path::new("hosts");
 
@@ -20,9 +20,8 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
 
         let name = relative.file_name().unwrap().to_string_lossy();
 
-        match depth {
-            1 => println!("{}{}", indent, name.green().bold()), // hosts
-            _ => println!("{}{}", indent, name.yellow()),       // configs
+        if let 1 = depth {
+            println!("{}{}", indent, name.green().bold())
         }
     }
 
