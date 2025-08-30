@@ -33,7 +33,8 @@ impl ConflictAction {
     fn prompt(kind: &str) -> Result<ConflictAction, Box<dyn Error>> {
         let selection = Select::new("Conflict")
             .description(
-                format!("Conflict occurred {kind}. how do you want to handle it?").as_str(),
+                format!("Conflict occurred of kind: {kind}.\nhow do you want to handle it?")
+                    .as_str(),
             )
             .theme(&Theme::base16())
             .options(vec![
