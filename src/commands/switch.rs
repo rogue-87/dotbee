@@ -38,9 +38,11 @@ impl ConflictAction {
             )
             .theme(&Theme::base16())
             .options(vec![
-                DemandOption::new(ConflictAction::Skip),
-                DemandOption::new(ConflictAction::Overwrite),
-                DemandOption::new(ConflictAction::Adopt),
+                DemandOption::new(ConflictAction::Skip).description("Don't symlink this file"),
+                DemandOption::new(ConflictAction::Overwrite)
+                    .description("Overwrite conflicting file"),
+                DemandOption::new(ConflictAction::Adopt)
+                    .description("Replace the file in config with the conflicting one"),
             ])
             .run()
             .expect("Error occurred in selection menu");
