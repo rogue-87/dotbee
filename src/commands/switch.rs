@@ -77,14 +77,14 @@ pub fn run(host: String) -> Result<(), Box<dyn Error>> {
                 if target == source {
                     println!(
                         "{} {} → {} (already linked)",
-                        "🔁".cyan(),
+                        " ".cyan(),
                         source.display(),
                         destination.display()
                     );
                 } else {
                     println!(
                         "{} {} → {} (conflicts with symlink to {})",
-                        "❌".red(),
+                        " ".red(),
                         source.display(),
                         destination.display(),
                         target.display()
@@ -95,7 +95,7 @@ pub fn run(host: String) -> Result<(), Box<dyn Error>> {
             } else {
                 println!(
                     "{} {} → {} (conflicts with existing file/dir)",
-                    "❌".red(),
+                    " ".red(),
                     source.display(),
                     destination.display()
                 );
@@ -106,7 +106,7 @@ pub fn run(host: String) -> Result<(), Box<dyn Error>> {
             symlink_with_parents(source, &destination)?;
             println!(
                 "{} {} → {}",
-                "🔗".green(),
+                " ".green(),
                 source.display(),
                 destination.display()
             );
@@ -124,7 +124,7 @@ fn handle_conflict(
     kind: &str,
 ) -> Result<(), Box<dyn Error>> {
     match ConflictAction::prompt(kind)? {
-        ConflictAction::Skip => println!(" Skipped {}", destination.display()),
+        ConflictAction::Skip => println!("  Skipped {}", destination.display()),
         ConflictAction::Overwrite => {
             if destination.is_dir() {
                 trash::delete(destination)?;
@@ -143,7 +143,7 @@ fn handle_conflict(
             }
             std::fs::rename(destination, &adopt_target)?;
             symlink(source, destination)?;
-            println!("󰸧 Adopted existing file into host config and created new symlink.");
+            println!("󰸧  Adopted existing file into host config and created new symlink.");
         }
     }
 
