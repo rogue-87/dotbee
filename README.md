@@ -37,7 +37,7 @@ Dotsy aims to simplify dotfile management by:
 ### Hosts
 
 - Represent **device- or environment-specific configurations**.
-- Examples: `global` (shared configs between hosts like gitconfig), `foo`, `bar`, `baz`.
+- Examples: `global` (shared configs between hosts like gitconfig), `desktop`, `laptop`, `termux`.
 - Stored in `hosts/` directory.
 
 ### State File
@@ -47,7 +47,7 @@ Dotsy aims to simplify dotfile management by:
 - Example content:
   ```json
   {
-    "active-host": "foo"
+    "active-host": "laptop"
   }
   ```
 
