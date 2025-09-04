@@ -1,3 +1,4 @@
+use crate::state;
 use colored::Colorize;
 use demand::{DemandOption, Select, Theme};
 use std::{
@@ -8,7 +9,15 @@ use std::{
 };
 use walkdir::WalkDir;
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
+enum DestinationStatus {
+    AlreadyLinked,
+    ConflictingSymlink(PathBuf),
+    ConflictingFileOrDir,
+    NonExistent,
+}
+
+#[derive(Clone, Copy)]
 enum ConflictAction {
     Skip,
     Overwrite,
@@ -70,50 +79,44 @@ pub fn run(host: String) -> Result<(), Box<dyn Error>> {
         let source = entry.path();
         let rel_path = source.strip_prefix(&selected_host)?;
         let destination = home.join(rel_path);
+        let status = get_destination_status(source, &destination)?;
+        print_link_status(&status, source, &destination);
 
-        if destination.exists() {
-            if destination.is_symlink() {
-                let target = std::fs::read_link(&destination)?;
-                if target == source {
-                    println!(
-                        "{} {} → {} (already linked)",
-                        " ".cyan(),
-                        source.display(),
-                        destination.display()
-                    );
-                } else {
-                    println!(
-                        "{} {} → {} (conflicts with symlink to {})",
-                        " ".red(),
-                        source.display(),
-                        destination.display(),
-                        target.display()
-                    );
-
-                    handle_conflict(source, &destination, &selected_host, rel_path, "symlink")?;
-                }
-            } else {
-                println!(
-                    "{} {} → {} (conflicts with existing file/dir)",
-                    " ".red(),
-                    source.display(),
-                    destination.display()
-                );
-
+        match status {
+            DestinationStatus::AlreadyLinked => {}
+            DestinationStatus::ConflictingSymlink(_) => {
+                handle_conflict(source, &destination, &selected_host, rel_path, "symlink")?;
+            }
+            DestinationStatus::ConflictingFileOrDir => {
                 handle_conflict(source, &destination, &selected_host, rel_path, "file/dir")?;
             }
-        } else {
-            symlink_with_parents(source, &destination)?;
-            println!(
-                "{} {} → {}",
-                " ".green(),
-                source.display(),
-                destination.display()
-            );
+            DestinationStatus::NonExistent => {
+                symlink_with_parents(source, &destination)?;
+            }
         }
     }
 
     Ok(())
+}
+
+fn get_destination_status(
+    source: &Path,
+    destination: &Path,
+) -> Result<DestinationStatus, Box<dyn Error>> {
+    if destination.exists() {
+        if destination.is_symlink() {
+            let target = std::fs::read_link(destination)?;
+            if target == source {
+                Ok(DestinationStatus::AlreadyLinked)
+            } else {
+                Ok(DestinationStatus::ConflictingSymlink(target.clone()))
+            }
+        } else {
+            Ok(DestinationStatus::ConflictingFileOrDir)
+        }
+    } else {
+        Ok(DestinationStatus::NonExistent)
+    }
 }
 
 fn handle_conflict(
@@ -126,7 +129,7 @@ fn handle_conflict(
     match ConflictAction::prompt(kind)? {
         ConflictAction::Skip => println!("  Skipped {}", destination.display()),
         ConflictAction::Overwrite => {
-            if destination.is_dir() {
+            if destination.is_file() || destination.is_dir() {
                 trash::delete(destination)?;
             }
             symlink(source, destination)?;
@@ -155,4 +158,42 @@ fn symlink_with_parents(source: &Path, destination: &PathBuf) -> std::io::Result
         std::fs::create_dir_all(parent)?;
     }
     symlink(source, destination)
+}
+
+fn print_link_status(status: &DestinationStatus, source: &Path, destination: &Path) {
+    match status {
+        DestinationStatus::AlreadyLinked => {
+            println!(
+                "{} {} → {} (already linked)",
+                " ".cyan(),
+                source.display(),
+                destination.display()
+            );
+        }
+        DestinationStatus::ConflictingSymlink(target) => {
+            println!(
+                "{} {} → {} (conflicts with symlink to {})",
+                " ".red(),
+                source.display(),
+                destination.display(),
+                target.display()
+            );
+        }
+        DestinationStatus::ConflictingFileOrDir => {
+            println!(
+                "{} {} → {} (conflicts with existing file/dir)",
+                " ".red(),
+                source.display(),
+                destination.display()
+            );
+        }
+        DestinationStatus::NonExistent => {
+            println!(
+                "{} {} → {}",
+                " ".green(),
+                source.display(),
+                destination.display()
+            );
+        }
+    }
 }
