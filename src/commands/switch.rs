@@ -73,7 +73,7 @@ fn get_destination_status(source: &Path, destination: &Path) -> Result<Destinati
     }
 }
 
-fn handle_conflict(source: &Path, destination: &PathBuf, selected_host: &Path, rel_path: &Path, kind: &str) -> Result<(), Box<dyn Error>> {
+fn handle_conflict(source: &Path, destination: &PathBuf, selected_config: &Path, rel_path: &Path, kind: &str) -> Result<(), Box<dyn Error>> {
     match ConflictAction::prompt(kind)? {
         ConflictAction::Skip => println!("  Skipped {}", destination.display()),
         ConflictAction::Overwrite => {
@@ -84,13 +84,13 @@ fn handle_conflict(source: &Path, destination: &PathBuf, selected_host: &Path, r
             println!(" Removed and symlinked: {} → {}", source.display(), destination.display());
         }
         ConflictAction::Adopt => {
-            let adopt_target = selected_host.join(rel_path);
+            let adopt_target = selected_config.join(rel_path);
             if let Some(parent) = adopt_target.parent() {
                 std::fs::create_dir_all(parent)?;
             }
             std::fs::rename(destination, &adopt_target)?;
             symlink(source, destination)?;
-            println!("󰸧  Adopted existing file into host config and created new symlink.");
+            println!("󰸧  Adopted existing file into config and created new symlink.");
         }
     }
 

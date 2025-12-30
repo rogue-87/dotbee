@@ -10,7 +10,7 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Command {
-    /// switch to a host
+    /// select config
     Switch {
         /// config collection to switch to
         config: String,
