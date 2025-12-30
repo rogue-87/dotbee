@@ -1,4 +1,3 @@
-use crate::state;
 use colored::Colorize;
 use demand::{DemandOption, Select, Theme};
 use std::{

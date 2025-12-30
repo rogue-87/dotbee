@@ -1,6 +1,5 @@
 mod cli;
 mod commands;
-mod state;
 use clap::Parser;
 use cli::{Cli, Command};
 use std::error::Error;
