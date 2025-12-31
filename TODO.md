@@ -1,4 +1,11 @@
-# Dotsy TODO
+# TODO's
+
+## Spec
+
+- [ ] Write complete spec file for dotsy `dotsy.toml`
+  - This file should decide how the configuration should look like
+  - After finalizing the configuration file, write a `dotsy.json` file
+    so taplo lsp could provide completions for it
 
 ## Core Features
 
