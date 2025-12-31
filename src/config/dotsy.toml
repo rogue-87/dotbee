@@ -1,0 +1,20 @@
+[settings]
+on_conflict = "ask"        # backup, overwrite, skip, abort or ask (ask)
+link_type = "relative"     # creates links like '../.dotfiles/bashrc'
+atomic_links = true        # swaps links via temp file for safety
+auto_detect_profile = true # try to match hostname to a profile
+
+[global.links]
+# Format: "Target Path" = "Source in Repo"
+"~/.bashrc" = "bash/bashrc"
+"~/.gitconfig" = "git/gitconfig"
+
+[profiles.desktop.links]
+"~/.config/i3/config" = "linux/i3_config"
+"~/.config/polybar/config" = "linux/polybar_config"
+
+[profiles.server.links]
+"~/.tmux.conf" = "server/tmux.conf"
+
+[profiles.termux.links]
+"~/.termux" = "termux/.termux"

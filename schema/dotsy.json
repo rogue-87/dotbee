@@ -1,0 +1,5 @@
+{
+  "$id": "https://gitlab.com/rogue87/dotsy/-blob/main/schema/mise.json",
+  "$schema": "https://json-schema.org/draft/2019-09/schema#",
+  "title": "dotsy"
+}
