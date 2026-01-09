@@ -9,7 +9,7 @@
 
 ## Core Features
 
-- [ ] Implement `dotsy init`
+- [x] Implement `dotsy init`
 - [ ] Implement `dotsy list`
   - List configs(a config is a collection of configuration files)
 - [ ] Implement `dotsy switch <config>`
