@@ -1,7 +1,7 @@
 [settings]
-atomic_links = true        # swaps links via temp file for safety
-auto_detect_profile = true # try to match hostname to a profile
-on_conflict = "ask"        #  overwrite, adopt, skip, abort or ask (default: ask)
+atomic_links = true       # swaps links via temp file for safety
+auto_detect_config = true # try to match hostname to a config
+on_conflict = "ask"       #  overwrite, adopt, skip, abort or ask (default: ask)
 
 [variables]
 editor = "nvim"
@@ -14,22 +14,22 @@ pre_link = "echo 'pre hook'"
 [hooks.post]
 post_link = "echo 'post hook'"
 
-# global configs that gets applied regardless of profile
+# global configs that gets applied regardless of config
 [global.links]
 "~/.bashrc" = "bash/bashrc"
 "~/.gitconfig" = "git/gitconfig"
 
-# each profile below is a collection of configs
+# each config below is a collection of configs
 
-# desktop profile
-[profiles.desktop.links]
+# desktop config
+[configs.desktop.links]
 "~/.config/i3/config" = "linux/i3_config"
 "~/.config/polybar/config" = "linux/polybar_config"
 
-# server profile
-[profiles.server.links]
+# server config
+[configs.server.links]
 "~/.tmux.conf" = "server/tmux.conf"
 
-# termux profile
-[profiles.termux.links]
+# termux config
+[configs.termux.links]
 "~/.termux" = "termux/.termux"
