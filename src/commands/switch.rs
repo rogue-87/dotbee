@@ -1,4 +1,4 @@
-use crate::config::{Config, ConfigCollection};
+use crate::config::Config;
 use colored::Colorize;
 use demand::{DemandOption, Select, Theme};
 use std::{
@@ -68,7 +68,7 @@ impl ConflictAction {
     }
 }
 
-pub fn run(config_name: String) -> Result<(), Box<dyn Error>> {
+pub fn run(profile_name: String) -> Result<(), Box<dyn Error>> {
     let config_path = Path::new("dotsy.toml");
     if !config_path.exists() {
         return Err("dotsy.toml not found. Run 'dotsy init' first.".into());
@@ -91,16 +91,16 @@ pub fn run(config_name: String) -> Result<(), Box<dyn Error>> {
         process_links(&global.links, &cwd, &config.settings.on_conflict)?;
     }
 
-    // apply config symlinks
-    if let Some(config_collections) = &config.configs {
-        if let Some(selected_config) = config_collections.get(&config_name) {
-            println!("Processing config '{}'...", config_name.green());
-            process_links(&selected_config.links, &cwd, &config.settings.on_conflict)?;
+    // apply profile symlinks
+    if let Some(profiles) = &config.profiles {
+        if let Some(profile) = profiles.get(&profile_name) {
+            println!("Processing profile '{}'...", profile_name.green());
+            process_links(&profile.links, &cwd, &config.settings.on_conflict)?;
         } else {
-            return Err(format!("Profile '{}' not found in configuration.", config_name).into());
+            return Err(format!("Profile '{}' not found in configuration.", profile_name).into());
         }
     } else {
-        println!("No configs defined in config.");
+        println!("No profiles defined in config.");
     }
 
     // post-hooks

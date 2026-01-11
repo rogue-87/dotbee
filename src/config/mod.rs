@@ -10,7 +10,7 @@ pub struct Config {
     pub variables: Option<HashMap<String, String>>,
     pub hooks: Option<Hooks>,
     pub global: Option<Global>,
-    pub configs: Option<HashMap<String, ConfigCollection>>,
+    pub profiles: Option<HashMap<String, Profile>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -32,7 +32,7 @@ pub struct Global {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct ConfigCollection {
+pub struct Profile {
     pub links: HashMap<String, String>,
 }
 
