@@ -1,7 +1,7 @@
-use crate::config::{Config, Profile};
-use crate::util::expand_path;
+use crate::config::Config;
+use crate::util::is_profile_active;
 use colored::Colorize;
-use std::{error::Error, fs, path::Path};
+use std::{error::Error, path::Path};
 
 pub fn run() -> Result<(), Box<dyn Error>> {
     let config_path = Path::new("dotsy.toml");
@@ -33,32 +33,4 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     }
 
     Ok(())
-}
-
-fn is_profile_active(profile: &Profile, cwd: &Path) -> bool {
-    if profile.links.is_empty() {
-        return false;
-    }
-
-    for (target_str, source_str) in &profile.links {
-        let target_path = match expand_path(target_str) {
-            Ok(p) => p,
-            Err(_) => return false,
-        };
-        let source_path = cwd.join(source_str);
-
-        if !target_path.is_symlink() {
-            return false;
-        }
-
-        match fs::read_link(&target_path) {
-            Ok(p) => {
-                if p != source_path {
-                    return false;
-                }
-            }
-            Err(_) => return false,
-        }
-    }
-    true
 }
