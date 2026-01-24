@@ -1,5 +1,5 @@
 use crate::config::Config;
-use crate::util::{expand_path, get_destination_status, is_profile_active, unlink_profile_links, DestinationStatus};
+use crate::util::{expand_path, get_destination_status, is_profile_active, symlink_with_parents, unlink_profile_links, DestinationStatus};
 use colored::Colorize;
 use demand::{DemandOption, Select, Theme};
 use std::{
@@ -7,7 +7,6 @@ use std::{
     error::Error,
     fmt::{Display, Formatter},
     fs,
-    os::unix::fs::symlink,
     path::{Path, PathBuf},
     process::Command,
 };
@@ -165,10 +164,10 @@ fn process_links(links: &HashMap<String, String>, cwd: &Path, default_conflict_s
             }
         }
     }
-        Ok(())
-    }
-    
-    fn handle_conflict(
+    Ok(())
+}
+
+fn handle_conflict(
     action: ConflictAction,
     source: &Path,
     destination: &PathBuf,
@@ -208,11 +207,4 @@ fn process_links(links: &HashMap<String, String>, cwd: &Path, default_conflict_s
     }
 
     Ok(())
-}
-
-fn symlink_with_parents(source: &Path, destination: &PathBuf) -> std::io::Result<()> {
-    if let Some(parent) = destination.parent() {
-        fs::create_dir_all(parent).unwrap();
-    }
-    symlink(source, destination)
 }

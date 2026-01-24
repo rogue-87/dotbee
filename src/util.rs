@@ -92,3 +92,10 @@ pub fn unlink_profile_links(links: &std::collections::HashMap<String, String>, c
     }
     Ok(())
 }
+
+pub fn symlink_with_parents(source: &Path, destination: &PathBuf) -> std::io::Result<()> {
+    if let Some(parent) = destination.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    std::os::unix::fs::symlink(source, destination)
+}
