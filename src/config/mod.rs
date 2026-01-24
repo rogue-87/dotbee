@@ -1,13 +1,13 @@
+use colored::Colorize;
 use serde::Deserialize;
 use std::collections::HashMap;
+use std::error::Error;
 use std::fs;
 use std::path::Path;
-use std::error::Error;
 
 #[derive(Debug, Deserialize)]
 pub struct Config {
     pub settings: Settings,
-    pub variables: Option<HashMap<String, String>>,
     pub hooks: Option<Hooks>,
     pub global: Option<Global>,
     pub profiles: Option<HashMap<String, Profile>>,
@@ -15,8 +15,6 @@ pub struct Config {
 
 #[derive(Debug, Deserialize)]
 pub struct Settings {
-    pub atomic_links: bool,
-    pub auto_detect_profile: bool,
     pub on_conflict: String,
 }
 
@@ -37,9 +35,22 @@ pub struct Profile {
 }
 
 impl Config {
-    pub fn load_from_path(path: &Path) -> Result<Self, Box<dyn Error>> {
-        let content = fs::read_to_string(path)?;
-        let config: Config = toml::from_str(&content)?;
+    /// my stupid brain be like
+    /// "should I rename `path` parameter to `path_string`?"
+    /// wait a minute, I could just do lsp hover!
+    /// wait no that's clear enough...
+    /// hmm no...
+    /// man screw this shit
+    pub fn load(path: Option<String>) -> Result<Config, Box<dyn Error>> {
+        let path = path.unwrap_or("dotsy.toml".to_string());
+
+        let config_path = Path::new(&path);
+        if !config_path.exists() {
+            return Err(format!("dotsy.toml not found. Run 'dotsy init' first.").into());
+        }
+
+        let content = fs::read_to_string(config_path).unwrap();
+        let config = toml::from_str(&content).unwrap();
         Ok(config)
     }
 }

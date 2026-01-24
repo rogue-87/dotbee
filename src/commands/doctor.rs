@@ -5,12 +5,7 @@ use std::error::Error;
 use std::path::Path;
 
 pub fn run() -> Result<(), Box<dyn Error>> {
-    let config_path = Path::new("dotsy.toml");
-    if !config_path.exists() {
-        return Err("dotsy.toml not found. Run 'dotsy init' first.".into());
-    }
-
-    let config = Config::load_from_path(config_path)?;
+    let config = Config::load(None)?;
     let cwd = std::env::current_dir()?;
 
     println!("{}", "Dotsy Doctor Report".bold().underline());
