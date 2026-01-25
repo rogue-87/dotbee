@@ -61,22 +61,26 @@ impl ConflictAction {
     }
 }
 
-pub fn run(profile_name: String) -> Result<(), Box<dyn Error>> {
-    let config = Config::load(None)?;
+pub fn run(profile_name: String, config_path: Option<String>, dry_run: bool) -> Result<(), Box<dyn Error>> {
+    let config = Config::load(config_path)?;
     let cwd = std::env::current_dir().unwrap();
+
+    if dry_run {
+        println!("{}", "Switching profile (dry run)...".bold().yellow());
+    }
 
     // pre-hooks
     if let Some(hooks) = &config.hooks {
         if let Some(pre) = &hooks.pre {
             println!("{}", "Running pre-hooks...".yellow());
-            run_hooks(pre).unwrap();
+            run_hooks(pre, dry_run).unwrap();
         }
     }
 
     // apply global symlinks
     if let Some(global) = &config.global {
         println!("{}", "Processing global links...".blue());
-        process_links(&global.links, &cwd, &config.settings.on_conflict).unwrap();
+        process_links(&global.links, &cwd, &config.settings.on_conflict, dry_run).unwrap();
     }
 
     // unlink other active profiles
@@ -84,7 +88,7 @@ pub fn run(profile_name: String) -> Result<(), Box<dyn Error>> {
         for (name, profile) in profiles {
             if name != &profile_name && is_profile_active(profile, &cwd) {
                 println!("Unlinking previously active profile '{}'...", name.yellow());
-                unlink_profile_links(&profile.links, &cwd).unwrap();
+                unlink_profile_links(&profile.links, &cwd, dry_run).unwrap();
             }
         }
     }
@@ -93,7 +97,7 @@ pub fn run(profile_name: String) -> Result<(), Box<dyn Error>> {
     if let Some(profiles) = &config.profiles {
         if let Some(profile) = profiles.get(&profile_name) {
             println!("Processing profile '{}'...", profile_name.green());
-            process_links(&profile.links, &cwd, &config.settings.on_conflict).unwrap();
+            process_links(&profile.links, &cwd, &config.settings.on_conflict, dry_run).unwrap();
         } else {
             return Err(format!("Profile '{}' not found in configuration.", profile_name).into());
         }
@@ -105,25 +109,38 @@ pub fn run(profile_name: String) -> Result<(), Box<dyn Error>> {
     if let Some(hooks) = &config.hooks {
         if let Some(post) = &hooks.post {
             println!("{}", "Running post-hooks...".yellow());
-            run_hooks(post).unwrap();
+            run_hooks(post, dry_run).unwrap();
         }
+    }
+
+    if dry_run {
+        println!("{}", "Switch dry run complete.".green());
     }
 
     Ok(())
 }
 
-fn run_hooks(hooks: &HashMap<String, String>) -> Result<(), Box<dyn Error>> {
+fn run_hooks(hooks: &HashMap<String, String>, dry_run: bool) -> Result<(), Box<dyn Error>> {
     for (name, command) in hooks {
-        println!("  Running {}: {}", name.cyan(), command);
-        let status = Command::new("sh").arg("-c").arg(command).status().unwrap();
-        if !status.success() {
-            eprintln!("{} Hook '{}' failed with status {}", "Warning:".yellow(), name, status);
+        if dry_run {
+            println!("  Would run {}: {} (dry run)", name.cyan(), command);
+        } else {
+            println!("  Running {}: {}", name.cyan(), command);
+            let status = Command::new("sh").arg("-c").arg(command).status().unwrap();
+            if !status.success() {
+                eprintln!("{} Hook '{}' failed with status {}", "Warning:".yellow(), name, status);
+            }
         }
     }
     Ok(())
 }
 
-fn process_links(links: &HashMap<String, String>, cwd: &Path, default_conflict_strategy: &str) -> Result<(), Box<dyn Error>> {
+fn process_links(
+    links: &HashMap<String, String>,
+    cwd: &Path,
+    default_conflict_strategy: &str,
+    dry_run: bool,
+) -> Result<(), Box<dyn Error>> {
     for (target_str, source_str) in links {
         let source_path = cwd.join(source_str);
         let target_path = expand_path(target_str).unwrap();
@@ -138,8 +155,12 @@ fn process_links(links: &HashMap<String, String>, cwd: &Path, default_conflict_s
         match status {
             DestinationStatus::AlreadyLinked => println!("{} {} → {} (already linked)", " ".green(), source_str, target_str),
             DestinationStatus::NonExistent => {
-                symlink_with_parents(&source_path, &target_path).unwrap();
-                println!("{} {} → {}", " ".green(), source_str, target_str);
+                if dry_run {
+                    println!("{} Would link {} → {} (dry run)", " ".green(), source_str, target_str);
+                } else {
+                    symlink_with_parents(&source_path, &target_path, dry_run).unwrap();
+                    println!("{} {} → {}", " ".green(), source_str, target_str);
+                }
             }
             _ => {
                 let kind = match status {
@@ -151,11 +172,16 @@ fn process_links(links: &HashMap<String, String>, cwd: &Path, default_conflict_s
                     Some(action) => action,
                     _ => {
                         println!("{} Conflict: {} → {} ({})", " ".red(), source_str, target_str, kind);
-                        ConflictAction::prompt(kind).unwrap()
+                        if dry_run {
+                            println!("  {} Skipping conflict resolution in dry run", "⚠️ ".yellow());
+                            ConflictAction::Skip
+                        } else {
+                            ConflictAction::prompt(kind).unwrap()
+                        }
                     }
                 };
 
-                handle_conflict(action, &source_path, &target_path, cwd, Path::new(source_str)).unwrap();
+                handle_conflict(action, &source_path, &target_path, cwd, Path::new(source_str), dry_run).unwrap();
             }
         }
     }
@@ -168,36 +194,45 @@ fn handle_conflict(
     destination: &PathBuf,
     repo_root: &Path,
     rel_source: &Path,
+    dry_run: bool,
 ) -> Result<(), Box<dyn Error>> {
     match action {
         ConflictAction::Skip => println!("  Skipped {}", destination.display()),
         ConflictAction::Abort => return Err("Operation aborted by user.".into()),
         ConflictAction::Overwrite => {
-            if destination.is_symlink() || destination.is_file() || destination.is_dir() {
-                trash::delete(destination).unwrap();
+            if dry_run {
+                println!("  Would overwrite: {} → {} (dry run)", source.display(), destination.display());
+            } else {
+                if destination.is_symlink() || destination.is_file() || destination.is_dir() {
+                    trash::delete(destination).unwrap();
+                }
+                symlink_with_parents(source, destination, dry_run).unwrap();
+                println!("  Overwrite: {} → {}", source.display(), destination.display());
             }
-            symlink_with_parents(source, destination).unwrap();
-            println!("  Overwrite: {} → {}", source.display(), destination.display());
         }
         ConflictAction::Adopt => {
-            let adopt_target = repo_root.join(rel_source);
-            // ensure parent exists in repo (it should if source exists, but checking just in case)
-            if let Some(parent) = adopt_target.parent() {
-                fs::create_dir_all(parent).unwrap();
+            if dry_run {
+                println!("  Would adopt: {} → {} (dry run)", source.display(), destination.display());
+            } else {
+                let adopt_target = repo_root.join(rel_source);
+                // ensure parent exists in repo (it should if source exists, but checking just in case)
+                if let Some(parent) = adopt_target.parent() {
+                    fs::create_dir_all(parent).unwrap();
+                }
+                // if the source file already exists in repo, trash it before adopting the system one?
+                // "Adopt" implies the system one is the truth.
+                if adopt_target.exists() {
+                    trash::delete(&adopt_target).unwrap();
+                }
+                // move the file from destination (system) to source (repo)
+                // rename might fail across filesystems, so copy+delete is safer, but rename is atomic on same FS.
+                // let's try rename first, fallback to copy/delete if needed?
+                // for now, simple rename :D
+                fs::rename(destination, &adopt_target).unwrap();
+                // Now link back
+                symlink_with_parents(source, destination, dry_run).unwrap();
+                println!("  Adopted: {} → {}", source.display(), destination.display());
             }
-            // if the source file already exists in repo, trash it before adopting the system one?
-            // "Adopt" implies the system one is the truth.
-            if adopt_target.exists() {
-                trash::delete(&adopt_target).unwrap();
-            }
-            // move the file from destination (system) to source (repo)
-            // rename might fail across filesystems, so copy+delete is safer, but rename is atomic on same FS.
-            // let's try rename first, fallback to copy/delete if needed?
-            // for now, simple rename :D
-            fs::rename(destination, &adopt_target).unwrap();
-            // Now link back
-            symlink_with_parents(source, destination).unwrap();
-            println!("  Adopted: {} → {}", source.display(), destination.display());
         }
     }
 

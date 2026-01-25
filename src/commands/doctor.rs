@@ -4,8 +4,8 @@ use colored::Colorize;
 use std::error::Error;
 use std::path::Path;
 
-pub fn run() -> Result<(), Box<dyn Error>> {
-    let config = Config::load(None)?;
+pub fn run(config_path: Option<String>) -> Result<(), Box<dyn Error>> {
+    let config = Config::load(config_path)?;
     let cwd = std::env::current_dir()?;
 
     println!("{}", "Dotsy Doctor Report".bold().underline());

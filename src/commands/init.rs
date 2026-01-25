@@ -5,20 +5,26 @@ use std::path::Path;
 
 const DEFAULT_CONFIG: &str = include_str!("../config/dotsy.toml");
 
-pub fn run() -> Result<(), Box<dyn Error>> {
-    let config_path = Path::new("dotsy.toml");
+pub fn run(config_path: Option<String>, dry_run: bool) -> Result<(), Box<dyn Error>> {
+    let path_string = config_path.unwrap_or("dotsy.toml".to_string());
+    let config_path = Path::new(&path_string);
 
     if config_path.exists() {
-        println!("{} {}", " ".red(), "dotsy.toml already exists in the current directory.");
+        println!("{} {}", " ".red(), format!("{} already exists in the current directory.", path_string).red());
+        return Ok(());
+    }
+
+    if dry_run {
+        println!("{} Would initialize {} (dry run)", " ".green(), path_string);
         return Ok(());
     }
 
     fs::write(config_path, DEFAULT_CONFIG)?;
 
-    println!("{} {}", " ".green(), "Successfully initialized dotsy.toml");
+    println!("{} {}", " ".green(), format!("Successfully initialized {}", path_string).green());
     println!(
         "Edit the file to configure your dotfiles, then run {} to apply.",
-        "dotsy switch <profile>".yellow()
+        format!("dotsy --config {} switch <profile>", path_string).yellow()
     );
 
     Ok(())

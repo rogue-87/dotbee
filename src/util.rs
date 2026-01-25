@@ -69,7 +69,11 @@ pub fn get_destination_status(source: &Path, destination: &Path) -> Result<Desti
     }
 }
 
-pub fn unlink_profile_links(links: &std::collections::HashMap<String, String>, cwd: &Path) -> Result<(), Box<dyn std::error::Error>> {
+pub fn unlink_profile_links(
+    links: &std::collections::HashMap<String, String>,
+    cwd: &Path,
+    dry_run: bool,
+) -> Result<(), Box<dyn std::error::Error>> {
     for (target_str, source_str) in links {
         let target_path = expand_path(target_str)?;
         let source_path = cwd.join(source_str);
@@ -77,15 +81,22 @@ pub fn unlink_profile_links(links: &std::collections::HashMap<String, String>, c
         if target_path.is_symlink() {
             let actual_target = fs::read_link(&target_path)?;
             if actual_target == source_path {
-                fs::remove_file(&target_path)?;
-                println!("  {} Unlinked {}", " ".red(), target_str);
+                if dry_run {
+                    println!("  {} Would unlink {} (dry run)", " ".red(), target_str);
+                } else {
+                    fs::remove_file(&target_path)?;
+                    println!("  {} Unlinked {}", " ".red(), target_str);
+                }
             }
         }
     }
     Ok(())
 }
 
-pub fn symlink_with_parents(source: &Path, destination: &PathBuf) -> std::io::Result<()> {
+pub fn symlink_with_parents(source: &Path, destination: &PathBuf, dry_run: bool) -> std::io::Result<()> {
+    if dry_run {
+        return Ok(());
+    }
     if let Some(parent) = destination.parent() {
         fs::create_dir_all(parent)?;
     }
