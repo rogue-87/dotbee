@@ -36,7 +36,8 @@
 
 ## Future Enhancements
 
-- [ ] Dry-run mode to preview changes before applying.
+- [ ] (--dry-run) Dry-run mode to preview changes before applying.
+- [ ] (--config) For specifying custom config path
 - [ ] Auto-backup current dotfiles before switching or purging.
 - [ ] Cross-platform support improvements (macOS, Termux, W*ndows?(most likely not)).
 - [ ] Add tests for core functionality and edge cases.
