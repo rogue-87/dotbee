@@ -1,8 +1,7 @@
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(name = "Dotsy")]
-#[command(about = "Easy to use dotfiles manager", version, author)]
+#[command(name = "Dotsy", about = "Easy to use dotfiles manager", version, author)]
 pub struct Cli {
     #[command(subcommand)]
     pub subcommand: SubCommand,
