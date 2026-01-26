@@ -396,6 +396,7 @@ dependencies = [
  "colored",
  "demand",
  "dirs",
+ "indexmap",
  "serde",
  "taplo",
  "toml",
