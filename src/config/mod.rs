@@ -1,3 +1,7 @@
+pub mod hooks;
+pub mod icons;
+
+use hooks::Hooks;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::error::Error;
@@ -16,12 +20,6 @@ pub struct Config {
 pub struct Settings {
     pub on_conflict: String,
     pub icon_style: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Hooks {
-    pub pre: Option<HashMap<String, String>>,
-    pub post: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -52,50 +50,5 @@ impl Config {
         let content = fs::read_to_string(config_path).unwrap();
         let config = toml::from_str(&content).unwrap();
         Ok(config)
-    }
-}
-
-pub struct Icons {
-    pub check: String,
-    pub cross: String,
-    pub link: String,
-    pub unlink: String,
-    pub warning: String,
-    pub info: String,
-    pub error: String,
-}
-
-impl Icons {
-    pub fn new(style: &str) -> Self {
-        match style.to_lowercase().as_str() {
-            "emoji" => Self {
-                check: "✅ ".to_string(),
-                cross: "❌ ".to_string(),
-                link: "🔗 ".to_string(),
-                unlink: "💔 ".to_string(),
-                warning: "⚠️ ".to_string(),
-                info: "ℹ️ ".to_string(),
-                error: "🚫 ".to_string(),
-            },
-            "nerdfont" => Self {
-                check: " ".to_string(),
-                cross: " ".to_string(),
-                link: " ".to_string(),
-                unlink: " ".to_string(),
-                warning: " ".to_string(),
-                info: " ".to_string(),
-                error: " ".to_string(),
-            },
-            // default
-            "text" | _ => Self {
-                check: "DONE ".to_string(),
-                cross: "FAIL ".to_string(),
-                link: "LINK ".to_string(),
-                unlink: "MISS ".to_string(),
-                warning: "WARN ".to_string(),
-                info: "INFO ".to_string(),
-                error: "ERROR ".to_string(),
-            },
-        }
     }
 }

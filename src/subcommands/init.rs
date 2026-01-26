@@ -1,4 +1,4 @@
-use crate::config::Icons;
+use crate::config::icons::Icons;
 use colored::Colorize;
 use std::error::Error;
 use std::fs;

@@ -1,5 +1,6 @@
 use crate::config::Config;
-use crate::config::Icons;
+use crate::config::hooks::execute_hook;
+use crate::config::icons::Icons;
 use crate::util::{DestinationStatus, expand_path, get_destination_status, is_profile_active, symlink_with_parents, unlink_profile_links};
 use colored::Colorize;
 use demand::{DemandOption, Select, Theme};
@@ -9,7 +10,6 @@ use std::{
     fmt::{Display, Formatter},
     fs,
     path::{Path, PathBuf},
-    process::Command,
 };
 
 #[derive(Clone)]
@@ -76,7 +76,7 @@ pub fn run(profile_name: String, config_path: Option<String>, dry_run: bool) -> 
     if let Some(hooks) = &config.hooks {
         if let Some(pre) = &hooks.pre {
             println!("{}", "Running pre-hooks...".yellow());
-            run_hooks(pre, dry_run).unwrap();
+            execute_hook(pre, dry_run).unwrap();
         }
     }
 
@@ -112,7 +112,7 @@ pub fn run(profile_name: String, config_path: Option<String>, dry_run: bool) -> 
     if let Some(hooks) = &config.hooks {
         if let Some(post) = &hooks.post {
             println!("{}", "Running post-hooks...".yellow());
-            run_hooks(post, dry_run).unwrap();
+            execute_hook(post, dry_run).unwrap();
         }
     }
 
@@ -120,21 +120,6 @@ pub fn run(profile_name: String, config_path: Option<String>, dry_run: bool) -> 
         println!("{}", "Switch dry run complete.".green());
     }
 
-    Ok(())
-}
-
-fn run_hooks(hooks: &HashMap<String, String>, dry_run: bool) -> Result<(), Box<dyn Error>> {
-    for (name, command) in hooks {
-        if dry_run {
-            println!("  Would run {}: {} (dry run)", name.cyan(), command);
-        } else {
-            println!("  Running {}: {}", name.cyan(), command);
-            let status = Command::new("sh").arg("-c").arg(command).status().unwrap();
-            if !status.success() {
-                eprintln!("{} Hook '{}' failed with status {}", "Warning:".yellow(), name, status);
-            }
-        }
-    }
     Ok(())
 }
 

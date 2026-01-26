@@ -1,5 +1,5 @@
 use crate::config::Config;
-use crate::config::Icons;
+use crate::config::icons::Icons;
 use crate::util::{DestinationStatus, expand_path, get_destination_status, is_profile_active, symlink_with_parents};
 use colored::Colorize;
 use std::error::Error;

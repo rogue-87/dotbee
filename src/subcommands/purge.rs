@@ -1,5 +1,5 @@
 use crate::config::Config;
-use crate::config::Icons;
+use crate::config::icons::Icons;
 use crate::util::{is_profile_active, unlink_profile_links};
 use colored::Colorize;
 use std::error::Error;
