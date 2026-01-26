@@ -4,6 +4,7 @@ use crate::util::{DestinationStatus, expand_path, get_destination_status, is_pro
 use colored::Colorize;
 use std::error::Error;
 use std::path::Path;
+use indexmap::IndexMap;
 
 pub fn run(config_path: Option<String>) -> Result<(), Box<dyn Error>> {
     let config = Config::load(config_path)?;
@@ -41,7 +42,7 @@ pub fn run(config_path: Option<String>) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn check_links(links: &std::collections::HashMap<String, String>, cwd: &Path, icons: &Icons) -> Result<(), Box<dyn Error>> {
+fn check_links(links: &IndexMap<String, String>, cwd: &Path, icons: &Icons) -> Result<(), Box<dyn Error>> {
     let mut sorted_links: Vec<_> = links.iter().collect();
     sorted_links.sort_by_key(|(k, _)| k.as_str());
 

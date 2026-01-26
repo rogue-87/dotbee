@@ -5,12 +5,12 @@ use crate::util::{DestinationStatus, expand_path, get_destination_status, is_pro
 use colored::Colorize;
 use demand::{DemandOption, Select, Theme};
 use std::{
-    collections::HashMap,
     error::Error,
     fmt::{Display, Formatter},
     fs,
     path::{Path, PathBuf},
 };
+use indexmap::IndexMap;
 
 #[derive(Clone)]
 enum ConflictAction {
@@ -124,7 +124,7 @@ pub fn run(profile_name: String, config_path: Option<String>, dry_run: bool) -> 
 }
 
 fn process_links(
-    links: &HashMap<String, String>,
+    links: &IndexMap<String, String>,
     cwd: &Path,
     default_conflict_strategy: &str,
     dry_run: bool,

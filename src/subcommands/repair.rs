@@ -4,6 +4,7 @@ use crate::util::{DestinationStatus, expand_path, get_destination_status, is_pro
 use colored::Colorize;
 use std::error::Error;
 use std::path::Path;
+use indexmap::IndexMap;
 
 pub fn run(config_path: Option<String>, dry_run: bool) -> Result<(), Box<dyn Error>> {
     let config = Config::load(config_path)?;
@@ -40,7 +41,7 @@ pub fn run(config_path: Option<String>, dry_run: bool) -> Result<(), Box<dyn Err
     Ok(())
 }
 
-fn repair_links(links: &std::collections::HashMap<String, String>, cwd: &Path, dry_run: bool, icons: &Icons) -> Result<(), Box<dyn Error>> {
+fn repair_links(links: &IndexMap<String, String>, cwd: &Path, dry_run: bool, icons: &Icons) -> Result<(), Box<dyn Error>> {
     for (target_str, source_str) in links {
         let source_path = cwd.join(source_str);
         let target_path = expand_path(target_str)?;

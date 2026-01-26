@@ -3,6 +3,7 @@ use crate::config::Profile;
 use colored::Colorize;
 use std::fs;
 use std::path::{Path, PathBuf};
+use indexmap::IndexMap;
 
 #[derive(Debug, PartialEq)]
 pub enum DestinationStatus {
@@ -71,7 +72,7 @@ pub fn get_destination_status(source: &Path, destination: &Path) -> Result<Desti
 }
 
 pub fn unlink_profile_links(
-    links: &std::collections::HashMap<String, String>,
+    links: &IndexMap<String, String>,
     cwd: &Path,
     dry_run: bool,
     icons: &Icons,

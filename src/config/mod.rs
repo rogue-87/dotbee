@@ -3,7 +3,7 @@ pub mod icons;
 
 use hooks::Hooks;
 use serde::Deserialize;
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use std::error::Error;
 use std::fs;
 use std::path::Path;
@@ -13,7 +13,7 @@ pub struct Config {
     pub settings: Settings,
     pub hooks: Option<Hooks>,
     pub global: Option<Global>,
-    pub profiles: Option<HashMap<String, Profile>>,
+    pub profiles: Option<IndexMap<String, Profile>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -24,12 +24,12 @@ pub struct Settings {
 
 #[derive(Debug, Deserialize)]
 pub struct Global {
-    pub links: HashMap<String, String>,
+    pub links: IndexMap<String, String>,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct Profile {
-    pub links: HashMap<String, String>,
+    pub links: IndexMap<String, String>,
 }
 
 impl Config {

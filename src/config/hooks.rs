@@ -1,16 +1,16 @@
 use colored::Colorize;
 use serde::Deserialize;
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use std::error::Error;
 use std::process::Command;
 
 #[derive(Debug, Deserialize)]
 pub struct Hooks {
-    pub pre: Option<HashMap<String, String>>,
-    pub post: Option<HashMap<String, String>>,
+    pub pre: Option<IndexMap<String, String>>,
+    pub post: Option<IndexMap<String, String>>,
 }
 
-pub fn execute_hook(hooks: &HashMap<String, String>, dry_run: bool) -> Result<(), Box<dyn Error>> {
+pub fn execute_hook(hooks: &IndexMap<String, String>, dry_run: bool) -> Result<(), Box<dyn Error>> {
     for (name, command) in hooks {
         if dry_run {
             println!("  Would run {}: {} (dry run)", name.cyan(), command);
