@@ -1,6 +1,6 @@
 use crate::config::Config;
 use crate::config::Icons;
-use crate::util::{expand_path, get_destination_status, is_profile_active, symlink_with_parents, DestinationStatus};
+use crate::util::{DestinationStatus, expand_path, get_destination_status, is_profile_active, symlink_with_parents};
 use colored::Colorize;
 use std::error::Error;
 use std::path::Path;
@@ -40,12 +40,7 @@ pub fn run(config_path: Option<String>, dry_run: bool) -> Result<(), Box<dyn Err
     Ok(())
 }
 
-fn repair_links(
-    links: &std::collections::HashMap<String, String>,
-    cwd: &Path,
-    dry_run: bool,
-    icons: &Icons,
-) -> Result<(), Box<dyn Error>> {
+fn repair_links(links: &std::collections::HashMap<String, String>, cwd: &Path, dry_run: bool, icons: &Icons) -> Result<(), Box<dyn Error>> {
     for (target_str, source_str) in links {
         let source_path = cwd.join(source_str);
         let target_path = expand_path(target_str)?;
@@ -58,9 +53,7 @@ fn repair_links(
         let status = get_destination_status(&source_path, &target_path)?;
 
         match status {
-            DestinationStatus::AlreadyLinked => {
-                // All good, do nothing
-            }
+            DestinationStatus::AlreadyLinked => {}
             DestinationStatus::NonExistent => {
                 if dry_run {
                     println!("  {} Would link {} -> {} (dry run)", icons.check.green(), source_str, target_str);

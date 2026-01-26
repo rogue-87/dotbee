@@ -1,6 +1,6 @@
 use crate::config::Config;
 use crate::config::Icons;
-use crate::util::{expand_path, get_destination_status, is_profile_active, symlink_with_parents, unlink_profile_links, DestinationStatus};
+use crate::util::{DestinationStatus, expand_path, get_destination_status, is_profile_active, symlink_with_parents, unlink_profile_links};
 use colored::Colorize;
 use demand::{DemandOption, Select, Theme};
 use std::{

@@ -1,7 +1,7 @@
 use crate::config::Config;
 use crate::util::is_profile_active;
 use colored::Colorize;
-use std::{error::Error};
+use std::error::Error;
 
 pub fn run(config_path: Option<String>) -> Result<(), Box<dyn Error>> {
     let config = Config::load(config_path)?;

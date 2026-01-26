@@ -27,7 +27,11 @@ pub fn run(config_path: Option<String>, dry_run: bool) -> Result<(), Box<dyn Err
 
     fs::write(config_path, DEFAULT_CONFIG)?;
 
-    println!("{} {}", icons.check.green(), format!("Successfully initialized {}", path_string).green());
+    println!(
+        "{} {}",
+        icons.check.green(),
+        format!("Successfully initialized {}", path_string).green()
+    );
     println!(
         "Edit the file to configure your dotfiles, then run {} to apply.",
         format!("dotsy switch <profile>").yellow()
