@@ -54,6 +54,23 @@ pub fn is_profile_active(profile: &Profile, cwd: &Path) -> bool {
     true
 }
 
+pub fn resolve_active_profile<'a>(
+    profiles: &'a IndexMap<String, Profile>,
+    state_active_profile: Option<&'a String>,
+    cwd: &Path,
+) -> Option<&'a String> {
+    if let Some(name) = state_active_profile {
+        return Some(name);
+    }
+
+    for (name, profile) in profiles {
+        if is_profile_active(profile, cwd) {
+            return Some(name);
+        }
+    }
+    None
+}
+
 pub fn get_destination_status(source: &Path, destination: &Path) -> Result<DestinationStatus, Box<dyn std::error::Error>> {
     if !destination.exists() && !destination.is_symlink() {
         return Ok(DestinationStatus::NonExistent);

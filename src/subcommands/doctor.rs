@@ -1,13 +1,15 @@
-use crate::config::Config;
 use crate::config::icons::Icons;
-use crate::util::{DestinationStatus, expand_path, get_destination_status, is_profile_active};
+use crate::config::Config;
+use crate::state::State;
+use crate::util::{expand_path, get_destination_status, is_profile_active, resolve_active_profile, DestinationStatus};
 use colored::Colorize;
+use indexmap::IndexMap;
 use std::error::Error;
 use std::path::Path;
-use indexmap::IndexMap;
 
 pub fn run(config_path: Option<String>) -> Result<(), Box<dyn Error>> {
     let config = Config::load(config_path)?;
+    let state = State::load()?;
     let cwd = std::env::current_dir()?;
     let icon_style = config.settings.icon_style.as_deref().unwrap_or("nerdfonts");
     let icons = Icons::new(icon_style);
@@ -22,18 +24,25 @@ pub fn run(config_path: Option<String>) -> Result<(), Box<dyn Error>> {
     }
 
     if let Some(profiles) = &config.profiles {
-        let mut active_found = false;
-        for (name, profile) in profiles {
-            if is_profile_active(profile, &cwd) {
-                println!("Active Profile: {}", name.green().bold());
-                check_links(&profile.links, &cwd, &icons)?;
-                println!();
-                active_found = true;
-            }
-        }
+        if let Some(active_name) = resolve_active_profile(profiles, state.active_profile.as_ref(), &cwd) {
+            let is_state_backed = state.active_profile.as_ref() == Some(active_name);
+            let source_label = if is_state_backed { "State" } else { "Inferred" };
+            
+            println!("Active Profile ({}): {}", source_label, active_name.cyan().bold());
 
-        if !active_found {
-            println!("No fully active profile detected.");
+            if let Some(profile) = profiles.get(active_name) {
+                if is_profile_active(profile, &cwd) {
+                    println!("  Status: {}", "Healthy".green());
+                } else {
+                    println!("  Status: {}", "Broken / Partially Applied".yellow());
+                }
+                println!();
+                check_links(&profile.links, &cwd, &icons)?;
+            } else {
+                 println!("  Status: Profile '{}' not found in config!", active_name.red());
+            }
+        } else {
+            println!("No active profile detected.");
         }
     } else {
         println!("No profiles defined.");

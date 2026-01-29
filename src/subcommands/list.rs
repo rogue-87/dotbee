@@ -1,17 +1,27 @@
 use crate::config::Config;
+use crate::state::State;
 use crate::util::is_profile_active;
 use colored::Colorize;
 use std::error::Error;
 
 pub fn run(config_path: Option<String>) -> Result<(), Box<dyn Error>> {
     let config = Config::load(config_path)?;
+    let state = State::load()?;
     let cwd = std::env::current_dir()?;
 
     if let Some(profiles) = config.profiles {
         for (name, profile) in profiles {
-            let active = is_profile_active(&profile, &cwd);
-            let title = if active {
-                format!("{} (active)", name).green().bold()
+            let is_active_in_state = state.active_profile.as_ref() == Some(&name);
+            let is_physically_active = is_profile_active(&profile, &cwd);
+
+            let title = if is_active_in_state {
+                if is_physically_active {
+                    format!("{} (active)", name).green().bold()
+                } else {
+                    format!("{} (active - broken)", name).yellow().bold()
+                }
+            } else if is_physically_active {
+                format!("{} (active - inferred)", name).cyan().bold()
             } else {
                 name.bold()
             };

@@ -1,7 +1,8 @@
 use crate::config::Config;
 use crate::config::hooks::execute_hook;
 use crate::config::icons::Icons;
-use crate::util::{DestinationStatus, expand_path, get_destination_status, is_profile_active, symlink_with_parents, unlink_profile_links};
+use crate::state::State;
+use crate::util::{DestinationStatus, expand_path, get_destination_status, resolve_active_profile, symlink_with_parents, unlink_profile_links};
 use colored::Colorize;
 use demand::{DemandOption, Select, Theme};
 use std::{
@@ -64,6 +65,7 @@ impl ConflictAction {
 
 pub fn run(profile_name: String, config_path: Option<String>, dry_run: bool) -> Result<(), Box<dyn Error>> {
     let config = Config::load(config_path)?;
+    let mut state = State::load()?;
     let cwd = std::env::current_dir().unwrap();
     let icon_style = config.settings.icon_style.as_deref().unwrap_or("nerdfonts");
     let icons = Icons::new(icon_style);
@@ -88,10 +90,14 @@ pub fn run(profile_name: String, config_path: Option<String>, dry_run: bool) -> 
 
     // unlink other active profiles
     if let Some(profiles) = &config.profiles {
-        for (name, profile) in profiles {
-            if name != &profile_name && is_profile_active(profile, &cwd) {
-                println!("Unlinking previously active profile '{}'...", name.yellow());
-                unlink_profile_links(&profile.links, &cwd, dry_run, &icons).unwrap();
+        if let Some(active_name) = resolve_active_profile(profiles, state.active_profile.as_ref(), &cwd) {
+            if active_name != &profile_name {
+                if let Some(profile) = profiles.get(active_name) {
+                    println!("Unlinking active profile '{}'...", active_name.yellow());
+                    unlink_profile_links(&profile.links, &cwd, dry_run, &icons).unwrap();
+                } else {
+                     println!("Warning: Active profile '{}' not found in config.", active_name);
+                }
             }
         }
     }
@@ -118,6 +124,8 @@ pub fn run(profile_name: String, config_path: Option<String>, dry_run: bool) -> 
 
     if dry_run {
         println!("{}", "Switch dry run complete.".green());
+    } else {
+        state.set_active_profile(profile_name)?;
     }
 
     Ok(())

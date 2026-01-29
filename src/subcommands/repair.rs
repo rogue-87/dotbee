@@ -1,6 +1,7 @@
 use crate::config::Config;
 use crate::config::icons::Icons;
-use crate::util::{DestinationStatus, expand_path, get_destination_status, is_profile_active, symlink_with_parents};
+use crate::state::State;
+use crate::util::{DestinationStatus, expand_path, get_destination_status, resolve_active_profile, symlink_with_parents};
 use colored::Colorize;
 use std::error::Error;
 use std::path::Path;
@@ -8,6 +9,7 @@ use indexmap::IndexMap;
 
 pub fn run(config_path: Option<String>, dry_run: bool) -> Result<(), Box<dyn Error>> {
     let config = Config::load(config_path)?;
+    let state = State::load()?;
     let cwd = std::env::current_dir()?;
     let icon_style = config.settings.icon_style.as_deref().unwrap_or("nerdfonts");
     let icons = Icons::new(icon_style);
@@ -24,16 +26,18 @@ pub fn run(config_path: Option<String>, dry_run: bool) -> Result<(), Box<dyn Err
     }
 
     if let Some(profiles) = &config.profiles {
-        let mut active_found = false;
-        for (name, profile) in profiles {
-            if is_profile_active(profile, &cwd) {
-                println!("Checking profile '{}'...", name.green());
+        if let Some(active_name) = resolve_active_profile(profiles, state.active_profile.as_ref(), &cwd) {
+            if let Some(profile) = profiles.get(active_name) {
+                // If found via state, say "from state", else "inferred"?
+                // resolve_active_profile hides where it came from.
+                // But generally "Checking active profile 'name'..." is sufficient.
+                println!("Checking active profile '{}'...", active_name.green());
                 repair_links(&profile.links, &cwd, dry_run, &icons)?;
-                active_found = true;
+            } else {
+                 println!("Active profile '{}' not found in config.", active_name);
             }
-        }
-        if !active_found {
-            println!("No active profile detected. Only global links were checked.");
+        } else {
+             println!("No active profile detected. Only global links were checked.");
         }
     }
 
