@@ -1,7 +1,7 @@
 use crate::config::Config;
 use crate::config::icons::Icons;
 use crate::state::State;
-use crate::utils::{resolve_active_profile, unlink_profile_links};
+use crate::utils::{find_active_profile, unlink_profile_links};
 use colored::Colorize;
 use std::error::Error;
 
@@ -24,7 +24,7 @@ pub fn run(config_path: Option<String>, dry_run: bool) -> Result<(), Box<dyn Err
     }
 
     if let Some(profiles) = &config.profiles {
-        if let Some(active_name) = resolve_active_profile(profiles, state.active_profile.as_ref(), &cwd) {
+        if let Some(active_name) = find_active_profile(profiles, state.active_profile.as_ref(), &cwd) {
             if let Some(profile) = profiles.get(active_name) {
                 println!("Unlinking active profile '{}'...", active_name.yellow());
                 unlink_profile_links(&profile.links, &cwd, dry_run, &icons)?;

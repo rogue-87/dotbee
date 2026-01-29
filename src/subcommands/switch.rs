@@ -3,7 +3,7 @@ use crate::config::hooks::execute_hook;
 use crate::config::icons::Icons;
 use crate::state::State;
 use crate::utils::{
-    DestinationStatus, expand_path, get_destination_status, resolve_active_profile, symlink_with_parents, unlink_profile_links,
+    DestinationStatus, expand_path, get_destination_status, find_active_profile, symlink_with_parents, unlink_profile_links,
 };
 use colored::Colorize;
 use demand::{DemandOption, Select, Theme};
@@ -92,7 +92,7 @@ pub fn run(profile_name: String, config_path: Option<String>, dry_run: bool) -> 
 
     // unlink other active profiles
     if let Some(profiles) = &config.profiles {
-        if let Some(active_name) = resolve_active_profile(profiles, state.active_profile.as_ref(), &cwd) {
+        if let Some(active_name) = find_active_profile(profiles, state.active_profile.as_ref(), &cwd) {
             if active_name != &profile_name {
                 if let Some(profile) = profiles.get(active_name) {
                     println!("Unlinking active profile '{}'...", active_name.yellow());

@@ -54,7 +54,7 @@ pub fn is_profile_active(profile: &Profile, cwd: &Path) -> bool {
     true
 }
 
-pub fn resolve_active_profile<'a>(
+pub fn find_active_profile<'a>(
     profiles: &'a IndexMap<String, Profile>,
     state_active_profile: Option<&'a String>,
     cwd: &Path,

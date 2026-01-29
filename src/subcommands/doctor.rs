@@ -1,7 +1,7 @@
 use crate::config::Config;
 use crate::config::icons::Icons;
 use crate::state::State;
-use crate::utils::{DestinationStatus, expand_path, get_destination_status, is_profile_active, resolve_active_profile};
+use crate::utils::{DestinationStatus, expand_path, get_destination_status, is_profile_active, find_active_profile};
 use colored::Colorize;
 use indexmap::IndexMap;
 use std::error::Error;
@@ -24,7 +24,7 @@ pub fn run(config_path: Option<String>) -> Result<(), Box<dyn Error>> {
     }
 
     if let Some(profiles) = &config.profiles {
-        if let Some(active_name) = resolve_active_profile(profiles, state.active_profile.as_ref(), &cwd) {
+        if let Some(active_name) = find_active_profile(profiles, state.active_profile.as_ref(), &cwd) {
             let is_state_backed = state.active_profile.as_ref() == Some(active_name);
             let source_label = if is_state_backed { "State" } else { "Inferred" };
 
