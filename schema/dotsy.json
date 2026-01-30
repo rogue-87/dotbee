@@ -1,5 +1,99 @@
 {
-  "$id": "https://gitlab.com/rogue87/dotsy/-blob/main/schema/mise.json",
   "$schema": "https://json-schema.org/draft/2019-09/schema#",
-  "title": "dotsy"
+  "$id": "https://gitlab.com/rogue87/dotsy/-/raw/main/schema/dotsy.json",
+  "title": "Dotsy Configuration Schema",
+  "description": "Configuration schema for Dotsy dotfiles manager",
+  "type": "object",
+  "properties": {
+    "settings": {
+      "type": "object",
+      "description": "General settings for Dotsy",
+      "properties": {
+        "on_conflict": {
+          "type": "string",
+          "description": "How to handle conflicts when a file already exists at the symlink destination",
+          "enum": [
+            "overwrite",
+            "adopt",
+            "skip",
+            "abort",
+            "ask"
+          ],
+          "default": "ask"
+        },
+        "icon_style": {
+          "type": "string",
+          "description": "The style of icons to use in the CLI output",
+          "enum": [
+            "text",
+            "emoji",
+            "nerdfont"
+          ],
+          "default": "text"
+        }
+      },
+      "required": [
+        "on_conflict"
+      ],
+      "additionalProperties": false
+    },
+    "hooks": {
+      "type": "object",
+      "description": "Scripts that run before or after dotsy operations",
+      "properties": {
+        "pre": {
+          "type": "object",
+          "description": "Hooks that run before the switch operation",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "post": {
+          "type": "object",
+          "description": "Hooks that run after the switch operation",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "global": {
+      "type": "object",
+      "description": "Global configurations applied regardless of profile",
+      "properties": {
+        "links": {
+          "type": "object",
+          "description": "Symlinks to create: { 'destination': 'source' }",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "profiles": {
+      "type": "object",
+      "description": "Named profiles containing specific configurations",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "links": {
+            "type": "object",
+            "description": "Symlinks to create for this profile: { 'destination': 'source' }",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "links"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "settings"
+  ]
 }
