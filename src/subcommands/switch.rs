@@ -3,7 +3,7 @@ use crate::config::hooks::execute_hook;
 use crate::config::icons::Icons;
 use crate::state::State;
 use crate::utils::{
-    DestinationStatus, expand_path, get_destination_status, find_active_profile, symlink_with_parents, unlink_profile_links,
+    DestinationStatus, expand_path, find_active_profile, get_destination_status, symlink_with_parents, unlink_profile_links,
 };
 use colored::Colorize;
 use demand::{DemandOption, Select, Theme};

@@ -1,7 +1,7 @@
-use crate::config::icons::Icons;
 use crate::config::Config;
+use crate::config::icons::Icons;
 use crate::state::State;
-use crate::utils::{expand_path, find_active_profile, get_destination_status, symlink_with_parents, DestinationStatus};
+use crate::utils::{DestinationStatus, expand_path, find_active_profile, get_destination_status, symlink_with_parents};
 use colored::Colorize;
 use indexmap::IndexMap;
 use std::error::Error;
@@ -66,7 +66,12 @@ fn repair_links(links: &IndexMap<String, String>, cwd: &Path, dry_run: bool, ico
             }
             DestinationStatus::ConflictingSymlink => {
                 if dry_run {
-                    println!("  {} Would relink {} -> {} (dry run)", icons.success.green(), source_str, target_str);
+                    println!(
+                        "  {} Would relink {} -> {} (dry run)",
+                        icons.success.green(),
+                        source_str,
+                        target_str
+                    );
                 } else {
                     println!("  {} Relinking {} -> {}", icons.success.green(), source_str, target_str);
                     if target_path.exists() || target_path.is_symlink() {

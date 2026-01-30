@@ -1,5 +1,5 @@
-use crate::config::icons::Icons;
 use crate::config::Profile;
+use crate::config::icons::Icons;
 use colored::Colorize;
 use indexmap::IndexMap;
 use std::fs;
