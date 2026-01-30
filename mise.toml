@@ -1,4 +1,5 @@
 [tools]
+"github:bahdotsh/wrkflw" = "latest"
 
 [tools.rust]
 version = "1.92.0"
@@ -28,3 +29,6 @@ fi
 cargo build ${BUILD_FLAG}
 docker run -it --rm -v "$(pwd)/target/${BUILD_MODE}/dotsy:/usr/local/bin/dotsy:Z" dotsy-dev
 '''
+
+[tasks.test-gitlab-ci]
+run = 'wrkflw run .gitlab-ci.yml -v'
