@@ -11,7 +11,7 @@ pub fn run(config_path: Option<String>) -> Result<(), Box<dyn Error>> {
     let config = Config::load(config_path)?;
     let state = State::load()?;
     let cwd = std::env::current_dir()?;
-    let icon_style = config.settings.icon_style.as_deref().unwrap_or("text");
+    let icon_style = config.settings.icon_style.unwrap_or_default();
     let icons = Icons::new(icon_style);
 
     println!("{}", "Dotsy Doctor Report".bold().underline());

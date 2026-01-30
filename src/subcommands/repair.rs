@@ -11,7 +11,7 @@ pub fn run(config_path: Option<String>, dry_run: bool) -> Result<(), Box<dyn Err
     let config = Config::load(config_path)?;
     let state = State::load()?;
     let cwd = std::env::current_dir()?;
-    let icon_style = config.settings.icon_style.as_deref().unwrap_or("text");
+    let icon_style = config.settings.icon_style.unwrap_or_default();
     let icons = Icons::new(icon_style);
 
     if dry_run {

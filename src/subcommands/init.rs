@@ -9,7 +9,7 @@ const DEFAULT_CONFIG: &str = include_str!("../config/dotsy.toml");
 pub fn run(config_path: Option<String>, dry_run: bool) -> Result<(), Box<dyn Error>> {
     let path_string = config_path.unwrap_or("dotsy.toml".to_string());
     let config_path = Path::new(&path_string);
-    let icons = Icons::new("text");
+    let icons = Icons::default();
 
     if config_path.exists() {
         println!(

@@ -2,6 +2,7 @@ pub mod hooks;
 pub mod icons;
 
 use hooks::Hooks;
+use icons::IconStyle;
 use indexmap::IndexMap;
 use serde::Deserialize;
 use std::error::Error;
@@ -19,7 +20,7 @@ pub struct Config {
 #[derive(Debug, Deserialize)]
 pub struct Settings {
     pub on_conflict: String,
-    pub icon_style: Option<String>,
+    pub icon_style: Option<IconStyle>,
 }
 
 #[derive(Debug, Deserialize)]

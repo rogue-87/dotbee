@@ -1,3 +1,14 @@
+use serde::Deserialize;
+
+#[derive(Debug, Deserialize, Clone, Copy, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum IconStyle {
+    #[default]
+    Text,
+    Emoji,
+    NerdFont,
+}
+
 pub struct Icons {
     pub success: String,
     pub error: String,
@@ -9,10 +20,10 @@ pub struct Icons {
 }
 
 impl Icons {
-    pub fn new(style: &str) -> Self {
-        match style.to_lowercase().as_str() {
+    pub fn new(style: IconStyle) -> Self {
+        match style {
             #[rustfmt::skip]
-            "emoji" => Self {
+            IconStyle::Emoji => Self {
                 success : "✅ ".to_string(),
                 error   : "❌ ".to_string(),
                 warning : "⚠️ ".to_string(),
@@ -22,7 +33,7 @@ impl Icons {
                 delete  : "🗑️ ".to_string()
             },
             #[rustfmt::skip]
-            "nerdfont" => Self {
+            IconStyle::NerdFont => Self {
                 success : " ".to_string(),
                 error   : " ".to_string(),
                 warning : " ".to_string(),
@@ -31,9 +42,8 @@ impl Icons {
                 unlink  : " ".to_string(),
                 delete  : " ".to_string(),
             },
-            // default
             #[rustfmt::skip]
-            "text" | _ => Self {
+            IconStyle::Text => Self {
                 success : "DONE  ".to_string(),
                 error   : "ERROR ".to_string(),
                 warning : "WARN  ".to_string(),
@@ -43,5 +53,9 @@ impl Icons {
                 delete  : "DEL   ".to_string(),
             },
         }
+    }
+
+    pub fn default() -> Self {
+        Self::new(IconStyle::default())
     }
 }
