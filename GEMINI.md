@@ -9,19 +9,20 @@
 -   **Language:** Rust (Edition 2024, v1.92.0)
 -   **CLI Framework:** `clap`
 -   **Configuration:** TOML
--   **Core Logic:** Symlink management (creation, purging, repair)
+-   **Core Logic:** Symlink management (creation, purging, repair), state tracking, and optional hooks.
 
 ## Key Files & Directories
 
 -   `src/`: Source code.
     -   `main.rs`: Entry point.
-    -   `cli.rs`: CLI command definitions (Switch, Doctor, Init, List, Purge, Repair).
-    -   `commands/`: Implementation of specific CLI commands.
-    -   `config/`: Configuration handling (TOML parsing).
--   `mise.toml`: Project tool configuration (Rust version).
--   `mise-tasks/`: Helper scripts for containerized development (`build-container.sh`, `run-container.sh`).
+    -   `cli.rs`: CLI command definitions and argument parsing.
+    -   `subcommands/`: Implementation of specific CLI commands.
+    -   `config/`: Configuration handling (TOML parsing, conflict resolution, icons, hooks).
+    -   `state.rs`: Persistent state management (e.g., active profile).
+    -   `utils.rs`: Shared utility functions (path expansion, symlink status, unlinking).
+-   `mise.toml`: Project tool configuration and development tasks.
 -   `Cargo.toml`: Rust dependencies and package metadata.
--   `schema/dotsy.json`: JSON schema for validation (likely for the TOML config).
+-   `schema/dotsy.json`: JSON schema for `dotsy.toml` validation.
 
 ## Building and Running
 
@@ -45,7 +46,7 @@
 3.  **Containerized Environment (Recommended):**
     The project includes `mise` tasks to run Dotsy in a container to avoid accidental data loss on the host system during development.
     ```bash
-    # Check available tasks (inferred)
+    # Check available tasks
     mise run build-container
     mise run run-container
     ```
@@ -53,14 +54,15 @@
 ## Development Conventions
 
 -   **Formatting:** Follows standard Rust formatting (`rustfmt.toml` is present). Run `cargo fmt` before committing.
--   **Configuration:** Uses TOML for user configuration.
+-   **Configuration:** Uses TOML (`dotsy.toml`) for user configuration, validated against `schema/dotsy.json`.
 -   **Safety:** Due to the nature of file system operations (symlinking, deletion), testing in a container is highly encouraged.
+-   **State:** Uses `~/.local/state/dotsy/state.toml` to persist information like the currently active profile.
 
 ## CLI Commands (`src/cli.rs`)
 
--   `init`: Initialize Dotsy.
--   `list`: List available configs.
--   `switch <config>`: Switch to a specific config collection.
--   `doctor`: Show current configs and symlink status.
--   `purge`: Remove symlinks.
--   `repair`: Attempt to fix broken symlinks.
+-   `init`: Initialize Dotsy by creating a default configuration.
+-   `list`: List all available config profiles.
+-   `switch <profile>`: Switch to a specific config profile (symlinks files and updates state).
+-   `doctor`: Show currently active profile and status of all symlinks.
+-   `purge`: Remove all symlinks managed by Dotsy.
+-   `repair`: Attempt to fix broken or incorrect symlinks.
