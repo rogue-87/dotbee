@@ -1,7 +1,7 @@
-use crate::config::Config;
 use crate::config::icons::Icons;
+use crate::config::Config;
 use crate::state::State;
-use crate::utils::{DestinationStatus, expand_path, find_active_profile, get_destination_status, is_profile_active};
+use crate::utils::{expand_path, find_active_profile, get_destination_status, is_profile_active, DestinationStatus};
 use colored::Colorize;
 use indexmap::IndexMap;
 use std::error::Error;
@@ -68,7 +68,7 @@ fn check_links(links: &IndexMap<String, String>, cwd: &Path, icons: &Icons) -> R
 
         match status {
             DestinationStatus::AlreadyLinked => {
-                println!("  {} {} -> {}", icons.error.green(), source_str, target_str);
+                println!("  {} {} -> {}", icons.success.green(), source_str, target_str);
             }
             DestinationStatus::ConflictingSymlink => {
                 println!("  {} {} (Symlink points to wrong target)", icons.warning.yellow(), target_str);
