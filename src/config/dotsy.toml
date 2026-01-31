@@ -1,3 +1,5 @@
+#:schema https://gitlab.com/rogue87/dotsy/-/raw/main/schema/dotsy.json
+
 [settings]
 auto_detect_profile = true # try to match hostname to a profile
 on_conflict = "ask"        #  overwrite, adopt, skip, abort or ask (default: ask)

@@ -1,0 +1,4 @@
+[[rule]]
+include = ["**/dotsy.toml"]
+[rule.schema]
+path = "https://gitlab.com/rogue87/dotsy/-/raw/main/schema/dotsy.json"

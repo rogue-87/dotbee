@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft/2019-09/schema#",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://gitlab.com/rogue87/dotsy/-/raw/main/schema/dotsy.json",
   "title": "Dotsy Configuration Schema",
   "description": "Configuration schema for Dotsy dotfiles manager",
@@ -19,7 +19,18 @@
             "abort",
             "ask"
           ],
-          "default": "ask"
+          "default": "ask",
+          "x-taplo": {
+            "docs": {
+              "enumValues": [
+                "Overwrite the existing file with the symlink",
+                "Adopt the existing file into your dotfiles (moves it to the source path)",
+                "Skip symlinking this file",
+                "Abort the operation",
+                "Ask the user what to do"
+              ]
+            }
+          }
         },
         "icon_style": {
           "type": "string",
@@ -29,7 +40,16 @@
             "emoji",
             "nerdfont"
           ],
-          "default": "text"
+          "default": "text",
+          "x-taplo": {
+            "docs": {
+              "enumValues": [
+                "Plain text (e.g., [DONE], [ERROR])",
+                "Emoji icons",
+                "Nerd Font icons"
+              ]
+            }
+          }
         },
         "auto_detect_profile": {
           "type": "boolean",
@@ -37,9 +57,6 @@
           "default": false
         }
       },
-      "required": [
-        "on_conflict"
-      ],
       "additionalProperties": false
     },
     "hooks": {
