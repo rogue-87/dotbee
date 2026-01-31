@@ -9,7 +9,7 @@
 -   **Language:** Rust (Edition 2024, v1.92.0)
 -   **CLI Framework:** `clap`
 -   **Configuration:** TOML
--   **Core Logic:** Symlink management (creation, purging, repair), state tracking, and optional hooks.
+-   **Core Logic:** Symlink management (creation, purging, repair), state tracking.
 
 ## Key Files & Directories
 
@@ -17,7 +17,7 @@
     -   `main.rs`: Entry point.
     -   `cli.rs`: CLI command definitions and argument parsing.
     -   `subcommands/`: Implementation of specific CLI commands.
-    -   `config/`: Configuration handling (TOML parsing, conflict resolution, icons, hooks).
+    -   `config/`: Configuration handling (TOML parsing, conflict resolution, icons).
     -   `state.rs`: Persistent state management (e.g., active profile).
     -   `utils.rs`: Shared utility functions (path expansion, symlink status, unlinking).
 -   `mise.toml`: Project tool configuration and development tasks.

@@ -1,9 +1,9 @@
 pub mod conflict;
-pub mod hooks;
+
 pub mod icons;
 
 pub use conflict::ConflictAction;
-use hooks::Hooks;
+
 use icons::IconStyle;
 use indexmap::IndexMap;
 use serde::Deserialize;
@@ -14,7 +14,6 @@ use std::path::Path;
 #[derive(Debug, Deserialize)]
 pub struct Config {
     pub settings: Settings,
-    pub hooks: Option<Hooks>,
     pub global: Option<Global>,
     pub profiles: Option<IndexMap<String, Profile>>,
 }

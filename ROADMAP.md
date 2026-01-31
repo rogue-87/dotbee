@@ -8,7 +8,6 @@ This document outlines the planned development path for **Dotsy**. As an alpha p
 - [x] **Formalize Specification:** Finalize the `dotsy.toml` format (JSON Schema provided).
 - [x] **LSP Support:** Complete the `schema/dotsy.json` JSON schema to provide completions and validation via Taplo.
 - [x] **Documentation:** Finalize the `README.md` and establish a `CHANGELOG.md`.
-- [x] **Hooks:** Post-switch and Pre-switch hooks (execution of scripts).
 - [ ] **Usage Examples:** Write usage examples and troubleshooting tips.
 - [ ] **Code Documentation:** Add inline comments and docstrings to the codebase.
 - [ ] **Core Testing:** Implement a comprehensive test suite for symlink management (creation, purging, repair) and edge cases.

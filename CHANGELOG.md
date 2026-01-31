@@ -20,7 +20,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Dry-run mode (`--dry-run`) to preview filesystem changes.
     - Custom config path support (`--config`).
     - Configurable icon styles (Text, Emoji, NerdFont).
-    - Pre-switch and Post-switch hooks for script execution.
     - Global and profile-specific symlink management.
 - **Infrastructure:**
     - JSON Schema for `dotsy.toml` to provide LSP completions via Taplo.

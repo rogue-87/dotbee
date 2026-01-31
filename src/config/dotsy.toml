@@ -5,14 +5,6 @@ auto_detect_profile = true # try to match hostname to a profile
 on_conflict = "ask"        #  overwrite, adopt, skip, abort or ask (default: ask)
 icon_style = "text"
 
-# scripts that run before dotsy switch
-[hooks.pre]
-pre_link = "echo 'pre hook'"
-
-# scripts that run after dotsy switch
-[hooks.post]
-post_link = "echo 'post hook'"
-
 # global configs that gets applied regardless of profile
 [global.links]
 "~/.bashrc" = "bash/bashrc"

@@ -12,7 +12,6 @@
 
 - **Profile Support:** Switch between different environments (e.g., Desktop, Server, Termux).
 - **Global Configs:** Define links that apply across all profiles.
-- **Hooks:** Run custom scripts before or after switching profiles.
 - **Health Checks:** `dotsy doctor` and `repair` help you identify and fix broken symlinks.
 - **LSP Support:** Full JSON schema provided for autocompletion in `dotsy.toml`.
 - **Dry Run:** Preview changes with `--dry-run` before applying them.
@@ -63,9 +62,6 @@ Dotsy uses TOML for configuration.
 [settings]
 on_conflict = "ask"
 icon_style = "nerdfont"
-
-[hooks.post]
-reload_i3 = "i3-msg reload"
 
 [global.links]
 "~/.bashrc" = "bashrc"

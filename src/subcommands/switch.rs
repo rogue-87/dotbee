@@ -1,6 +1,6 @@
 use crate::config::Config;
 use crate::config::ConflictAction;
-use crate::config::hooks::execute_hook;
+
 use crate::config::icons::Icons;
 use crate::state::State;
 use crate::utils::{
@@ -42,13 +42,7 @@ pub fn run(profile_name: Option<String>, config_path: Option<String>, dry_run: b
         println!("{}", "Switching profile (dry run)...".bold().yellow());
     }
 
-    // pre-hooks
-    if let Some(hooks) = &config.hooks {
-        if let Some(pre) = &hooks.pre {
-            println!("{}", "Running pre-hooks...".yellow());
-            execute_hook(pre, dry_run).unwrap();
-        }
-    }
+
 
     // apply global symlinks
     if let Some(global) = &config.global {
@@ -82,13 +76,7 @@ pub fn run(profile_name: Option<String>, config_path: Option<String>, dry_run: b
         println!("No profiles defined in config.");
     }
 
-    // post-hooks
-    if let Some(hooks) = &config.hooks {
-        if let Some(post) = &hooks.post {
-            println!("{}", "Running post-hooks...".yellow());
-            execute_hook(post, dry_run).unwrap();
-        }
-    }
+
 
     if dry_run {
         println!("{}", "Switch dry run complete.".green());

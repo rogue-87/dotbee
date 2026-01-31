@@ -59,27 +59,7 @@
       },
       "additionalProperties": false
     },
-    "hooks": {
-      "type": "object",
-      "description": "Scripts that run before or after dotsy operations",
-      "properties": {
-        "pre": {
-          "type": "object",
-          "description": "Hooks that run before the switch operation",
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
-        "post": {
-          "type": "object",
-          "description": "Hooks that run after the switch operation",
-          "additionalProperties": {
-            "type": "string"
-          }
-        }
-      },
-      "additionalProperties": false
-    },
+
     "global": {
       "type": "object",
       "description": "Global configurations applied regardless of profile",
