@@ -24,7 +24,7 @@ if [[ "${usage_release}" ]]; then
 fi
 
 cargo build ${BUILD_FLAG}
-docker run -it --rm -v "$(pwd)/target/${BUILD_MODE}/dotsy:/usr/local/bin/dotsy:Z" dotsy-dev
+docker run --hostname="desktop" -it --rm -v "$(pwd)/target/${BUILD_MODE}/dotsy:/usr/local/bin/dotsy:Z" dotsy-dev
 '''
 
 [tasks.test-gitlab-ci]
