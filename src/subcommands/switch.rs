@@ -1,9 +1,8 @@
 use crate::config::ConflictAction;
-use crate::config::icons::Icons;
 use crate::context::Context;
+use crate::message::Message;
 use crate::utils::{
-    expand_path, find_active_profile, get_destination_status, get_hostname, symlink_with_parents,
-    unlink_profile_links, DestinationStatus,
+    DestinationStatus, expand_path, find_active_profile, get_destination_status, get_hostname, symlink_with_parents, unlink_profile_links,
 };
 use colored::Colorize;
 use indexmap::IndexMap;
@@ -15,18 +14,17 @@ use std::{
 
 pub fn run(profile_name: Option<String>, context: &mut Context) -> Result<(), Box<dyn Error>> {
     let cwd = std::env::current_dir().unwrap();
-    let icons = &context.icons;
+    let message = &context.message;
 
     let profile_name = match profile_name {
         Some(name) => name,
         None => {
             if context.config.settings.auto_detect_profile.unwrap_or(false) {
                 if let Some(hostname) = get_hostname() {
-                    println!(
-                        "{} No profile specified. Auto-detecting profile from hostname: '{}'",
-                        icons.info.blue(),
+                    message.info(&format!(
+                        "No profile specified. Auto-detecting profile from hostname: '{}'",
                         hostname
-                    );
+                    ));
                     hostname
                 } else {
                     return Err("Failed to auto-detect hostname.".into());
@@ -44,27 +42,18 @@ pub fn run(profile_name: Option<String>, context: &mut Context) -> Result<(), Bo
     // apply global symlinks
     if let Some(global) = &context.config.global {
         println!("{}", "Processing global links...".blue());
-        process_links(
-            &global.links,
-            &cwd,
-            &context.config.settings.on_conflict,
-            context.dry_run,
-            icons,
-        )
-        .unwrap();
+        process_links(&global.links, &cwd, &context.config.settings.on_conflict, context.dry_run, message).unwrap();
     }
 
     // unlink other active profiles
     if let Some(profiles) = &context.config.profiles {
-        if let Some(active_name) =
-            find_active_profile(profiles, context.state.active_profile.as_ref(), &cwd)
-        {
+        if let Some(active_name) = find_active_profile(profiles, context.state.active_profile.as_ref(), &cwd) {
             if active_name != &profile_name {
                 if let Some(profile) = profiles.get(active_name) {
-                    println!("Unlinking active profile '{}'...", active_name.yellow());
-                    unlink_profile_links(&profile.links, &cwd, context.dry_run, icons).unwrap();
+                    message.info(&format!("Unlinking active profile '{}'...", active_name.yellow()));
+                    unlink_profile_links(&profile.links, &cwd, context.dry_run, message).unwrap();
                 } else {
-                    println!("Warning: Active profile '{}' not found in config.", active_name);
+                    message.warning(&format!("Active profile '{}' not found in config.", active_name));
                 }
             }
         }
@@ -72,25 +61,18 @@ pub fn run(profile_name: Option<String>, context: &mut Context) -> Result<(), Bo
 
     // apply profile symlinks
     if let Some(profiles) = &context.config.profiles {
-        if let Some(profile) = profiles.get(&profile_name) {
-            println!("Processing profile '{}'...", profile_name.green());
-            process_links(
-                &profile.links,
-                &cwd,
-                &context.config.settings.on_conflict,
-                context.dry_run,
-                icons,
-            )
-            .unwrap();
+        if let Some(profile) = profiles.get(profile_name.as_str()) {
+            message.info(&format!("Processing profile '{}'...", profile_name.green()));
+            process_links(&profile.links, &cwd, &context.config.settings.on_conflict, context.dry_run, message).unwrap();
         } else {
             return Err(format!("Profile '{}' not found in configuration.", profile_name).into());
         }
     } else {
-        println!("No profiles defined in config.");
+        message.info("No profiles defined in config.");
     }
 
     if context.dry_run {
-        println!("{}", "Switch dry run complete.".green());
+        message.success("Switch dry run complete.");
     } else {
         context.state.set_active_profile(profile_name)?;
     }
@@ -103,27 +85,27 @@ fn process_links(
     cwd: &Path,
     default_conflict_strategy: &Option<ConflictAction>,
     dry_run: bool,
-    icons: &Icons,
+    message: &Message,
 ) -> Result<(), Box<dyn Error>> {
     for (target_str, source_str) in links {
         let source_path = cwd.join(source_str);
         let target_path = expand_path(target_str).unwrap();
 
         if !source_path.exists() {
-            println!("{} Source not found: {}", icons.error.red(), source_path.display());
+            message.error(&format!("Source not found: {}", source_path.display()));
             continue;
         }
 
         let status = get_destination_status(&source_path, &target_path).unwrap();
 
         match status {
-            DestinationStatus::AlreadyLinked => println!("{} {} → {} (already linked)", icons.success.green(), source_str, target_str),
+            DestinationStatus::AlreadyLinked => message.success(&format!("{} → {} (already linked)", source_str, target_str)),
             DestinationStatus::NonExistent => {
                 if dry_run {
-                    println!("{} Would link {} → {} (dry run)", icons.link.green(), source_str, target_str);
+                    message.link(&format!("Would link {} → {} (dry run)", source_str, target_str));
                 } else {
                     symlink_with_parents(&source_path, &target_path, dry_run).unwrap();
-                    println!("{} {} → {}", icons.link.green(), source_str, target_str);
+                    message.link(&format!("{} → {}", source_str, target_str));
                 }
             }
             _ => {
@@ -135,9 +117,9 @@ fn process_links(
                 // Resolve the action based on config or prompt
                 let action = match default_conflict_strategy {
                     Some(ConflictAction::Ask) | None => {
-                        println!("{} Conflict: {} → {} ({})", icons.error.red(), source_str, target_str, kind);
+                        message.error(&format!("Conflict: {} → {} ({})", source_str, target_str, kind));
                         if dry_run {
-                            println!("  {} Skipping conflict resolution in dry run", icons.warning.yellow());
+                            message.warning("Skipping conflict resolution in dry run");
                             ConflictAction::Skip
                         } else {
                             ConflictAction::prompt(kind).unwrap()
