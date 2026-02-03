@@ -1,4 +1,4 @@
-use crate::context::Context;
+use dotsy::context::Context;
 use colored::Colorize;
 use std::error::Error;
 use std::fs;
