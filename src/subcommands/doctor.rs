@@ -1,21 +1,21 @@
-use crate::config::icons::Icons;
 use crate::context::Context;
+use crate::message::Message;
 use crate::utils::{DestinationStatus, expand_path, find_active_profile, get_destination_status, is_profile_active};
 use colored::Colorize;
 use indexmap::IndexMap;
 use std::error::Error;
-use std::path::Path; // Added this import
+use std::path::Path;
 
 pub fn run(context: &Context) -> Result<(), Box<dyn Error>> {
     let cwd = std::env::current_dir()?;
-    let icons = &context.icons;
+    let message = &context.message;
 
     println!("{}", "Dotsy Doctor Report".bold().underline());
     println!();
 
     if let Some(global) = &context.config.global {
         println!("{}", "Global Links:".blue().bold());
-        check_links(&global.links, &cwd, icons)?;
+        check_links(&global.links, &cwd, message)?;
         println!();
     }
 
@@ -24,30 +24,30 @@ pub fn run(context: &Context) -> Result<(), Box<dyn Error>> {
             let is_state_backed = context.state.active_profile.as_ref() == Some(active_name);
             let source_label = if is_state_backed { "State" } else { "Inferred" };
 
-            println!("Active Profile ({}): {}", source_label, active_name.cyan().bold());
+            message.info(&format!("Active Profile ({}): {}", source_label, active_name.cyan().bold()));
 
             if let Some(profile) = profiles.get(active_name) {
                 if is_profile_active(profile, &cwd) {
-                    println!("  Status: {}", "Healthy".green());
+                    message.success("Status: Healthy");
                 } else {
-                    println!("  Status: {}", "Broken / Partially Applied".yellow());
+                    message.warning("Status: Broken / Partially Applied");
                 }
                 println!();
-                check_links(&profile.links, &cwd, icons)?;
+                check_links(&profile.links, &cwd, message)?;
             } else {
-                println!("  Status: Profile '{}' not found in config!", active_name.red());
+                message.error(&format!("Status: Profile '{}' not found in config!", active_name.red()));
             }
         } else {
-            println!("No active profile detected.");
+            message.info("No active profile detected.");
         }
     } else {
-        println!("No profiles defined.");
+        message.info("No profiles defined.");
     }
 
     Ok(())
 }
 
-fn check_links(links: &IndexMap<String, String>, cwd: &Path, icons: &Icons) -> Result<(), Box<dyn Error>> {
+fn check_links(links: &IndexMap<String, String>, cwd: &Path, message: &Message) -> Result<(), Box<dyn Error>> {
     let mut sorted_links: Vec<_> = links.iter().collect();
     sorted_links.sort_by_key(|(k, _)| k.as_str());
 
@@ -56,7 +56,7 @@ fn check_links(links: &IndexMap<String, String>, cwd: &Path, icons: &Icons) -> R
         let target_path = expand_path(target_str)?;
 
         if !source_path.exists() {
-            println!("  {} {} (Source missing: {})", icons.error.red(), source_str, source_path.display());
+            message.error(&format!("{} (Source missing: {})", source_str, source_path.display()));
             continue;
         }
 
@@ -64,16 +64,16 @@ fn check_links(links: &IndexMap<String, String>, cwd: &Path, icons: &Icons) -> R
 
         match status {
             DestinationStatus::AlreadyLinked => {
-                println!("  {} {} -> {}", icons.success.green(), source_str, target_str);
+                message.success(&format!("{} -> {}", source_str, target_str));
             }
             DestinationStatus::ConflictingSymlink => {
-                println!("  {} {} (Symlink points to wrong target)", icons.warning.yellow(), target_str);
+                message.warning(&format!("{} (Symlink points to wrong target)", target_str));
             }
             DestinationStatus::ConflictingFileOrDir => {
-                println!("  {} {} (Conflict: File/Dir exists)", icons.error.red(), target_str);
+                message.error(&format!("{} (Conflict: File/Dir exists)", target_str));
             }
             DestinationStatus::NonExistent => {
-                println!("  {} {} (Not linked)", icons.info.dimmed(), source_str);
+                message.info(&format!("{} (Not linked)", source_str));
             }
         }
     }

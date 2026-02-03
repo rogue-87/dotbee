@@ -1,6 +1,7 @@
 mod cli;
 mod config;
 mod context;
+mod message;
 mod state;
 mod subcommands;
 mod utils;

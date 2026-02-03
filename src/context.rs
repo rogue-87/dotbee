@@ -1,5 +1,6 @@
 use crate::config::Config;
-use crate::config::icons::{IconStyle, Icons};
+use crate::config::icons::IconStyle;
+use crate::message::Message;
 use crate::state::State;
 use std::error::Error;
 
@@ -7,7 +8,7 @@ use std::error::Error;
 pub struct Context {
     pub config: Config,
     pub state: State,
-    pub icons: Icons,
+    pub message: Message,
     pub dry_run: bool,
     pub config_path: Option<String>,
 }
@@ -17,12 +18,12 @@ impl Context {
         let config = Config::load(config_path.clone())?;
         let state = State::load()?;
         let icon_style = config.settings.icon_style.clone().unwrap_or(IconStyle::Text);
-        let icons = Icons::new(icon_style);
+        let message = Message::new(icon_style);
 
         Ok(Context {
             config,
             state,
-            icons,
+            message,
             dry_run,
             config_path,
         })
