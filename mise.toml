@@ -1,33 +1,4 @@
 [tools]
-"github:bahdotsh/wrkflw" = "latest"
 
 [settings]
 disable_tools = ["rust"]
-
-[tasks.build-container]
-run = '''
-#!/bin/env bash
-docker build -t dotsy-dev .
-'''
-
-[tasks.run-container]
-usage = '''
-flag "--release" help="Set cargo build mode to release"
-'''
-
-run = '''
-#!/bin/env bash
-
-BUILD_MODE="debug"
-BUILD_FLAG=""
-if [[ "${usage_release}" ]]; then
-	BUILD_MODE="release"
-	BUILD_FLAG="--release"
-fi
-
-cargo build ${BUILD_FLAG}
-docker run --hostname="desktop" -it --rm -v "$(pwd)/target/${BUILD_MODE}/dotsy:/usr/local/bin/dotsy:Z" dotsy-dev
-'''
-
-[tasks.test-gitlab-ci]
-run = 'wrkflw run .gitlab-ci.yml -v'
