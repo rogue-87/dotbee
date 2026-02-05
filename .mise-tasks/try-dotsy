@@ -21,8 +21,11 @@ echo
 
 cargo build --profile "${usage_profile?}" --target "${usage_target?}"
 
-echo "Building development container image..."
+echo "Building testing container image..."
 docker build -t dotsy-dev .
 
-echo "Running development container..."
-docker run --hostname="desktop" -it --rm -v "$(pwd)/target/${usage_target}/${BUILD_MODE}/dotsy:/usr/local/bin/dotsy:Z" dotsy-dev
+echo "Running testing container..."
+docker run --hostname="laptop" -it --rm \
+    -v "$(pwd)/target/${usage_target}/${BUILD_MODE}/dotsy:/usr/local/bin/dotsy:Z" \
+    -v "$(pwd)/example:/home/testuser/dotfiles:Z" \
+    dotsy-dev
