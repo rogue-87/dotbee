@@ -8,7 +8,7 @@ _Goal: Solidify the core specification and ensure reliability._
 
 - [x] **Formalize Specification:** Finalize the `dotsy.toml` format (JSON Schema provided).
 - [x] **LSP Support:** Complete the `schema/dotsy.json` JSON schema to provide completions and validation via Taplo.
-- [ ] **Shell Completions:** Provide completions for `bash`, `zsh` and `fish`.
+- [x] **Shell Completions:** Provide completions for `bash`, `zsh` and `fish`.
 - [x] **Documentation:** Finalize the `README.md` and establish a `CHANGELOG.md`.
 - [ ] **Usage Examples:** Write usage examples and troubleshooting tips.
 - [ ] **Code Documentation:** Add inline comments and docstrings to the codebase.
