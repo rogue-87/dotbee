@@ -133,6 +133,5 @@ icon_style = "nerdfont"
 To avoid accidental data loss on your host system during development, use the provided `mise` tasks to run Dotsy in a container:
 
 ```bash
-mise run build-container
-mise run run-container
+mise run try-dotsy --profile dev --target x86_64-unknown-linux-gnu
 ```
