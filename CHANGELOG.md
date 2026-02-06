@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `completion` command to generate shell completion scripts (Bash, Zsh, Fish, Elvish, PowerShell).
 - Command aliases for improved developer experience:
     - `ls` for `list`
-    - `sw` for `switch`
+    - `s` for `switch`
     - `dr` for `doctor`
 - `CONTRIBUTING.md` guide for new contributors.
 
