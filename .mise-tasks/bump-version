@@ -1,11 +1,28 @@
 #!/usr/bin/env bash
-#SBASH_ARG_1="<version>"
-#USAGE arg "<version>" help="The new version number (e.g. 0.2.2)"
+#USAGE arg "[increment]" var=#true help="The increment type (major, minor, bugfix) or a literal version" {
+#USAGE  choices "bugfix" "minor" "major"
+#USAGE }
 
 set -e
 
-NEW_VERSION="${usage_version?}"
+INCREMENT="${usage_increment?}"
 OLD_VERSION=$(grep -m 1 '^version = ' Cargo.toml | cut -d '"' -f 2)
+
+# Parse old version
+IFS='.' read -r MAJOR MINOR PATCH <<< "$OLD_VERSION"
+
+if [[ "$INCREMENT" == "major" ]]; then
+    NEW_VERSION="$((MAJOR + 1)).0.0"
+elif [[ "$INCREMENT" == "minor" ]]; then
+    NEW_VERSION="$MAJOR.$((MINOR + 1)).0"
+elif [[ "$INCREMENT" == "bugfix" ]]; then
+    NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
+elif [[ "$INCREMENT" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    NEW_VERSION="$INCREMENT"
+else
+    echo "Error: Invalid increment type '$INCREMENT'. Use 'major', 'minor', 'bugfix', or a literal version (e.g., 1.2.3)."
+    exit 1
+fi
 
 if [[ "$NEW_VERSION" == "$OLD_VERSION" ]]; then
     echo "Version is already $NEW_VERSION"
