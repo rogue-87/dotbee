@@ -25,12 +25,12 @@ pub fn expand_path(path_str: &str) -> Result<PathBuf, Box<dyn std::error::Error>
     Ok(PathBuf::from(path_str))
 }
 
-pub fn is_profile_active(profile: &Profile, cwd: &Path) -> bool {
-    if profile.links.is_empty() {
+pub fn is_links_active(links: &IndexMap<String, String>, cwd: &Path) -> bool {
+    if links.is_empty() {
         return false;
     }
 
-    for (target_str, source_str) in &profile.links {
+    for (target_str, source_str) in links {
         let target_path = match expand_path(target_str) {
             Ok(p) => p,
             Err(_) => return false,
@@ -51,6 +51,10 @@ pub fn is_profile_active(profile: &Profile, cwd: &Path) -> bool {
         }
     }
     true
+}
+
+pub fn is_profile_active(profile: &Profile, cwd: &Path) -> bool {
+    is_links_active(&profile.links, cwd)
 }
 
 pub fn find_active_profile<'a>(

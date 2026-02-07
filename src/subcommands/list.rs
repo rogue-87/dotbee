@@ -1,10 +1,16 @@
 use colored::Colorize;
 use dotsy::context::Context;
 use dotsy::utils::{find_active_profile, is_profile_active};
+use indexmap::IndexMap;
 use std::error::Error;
 
 pub fn run(context: &Context) -> Result<(), Box<dyn Error>> {
     let cwd = std::env::current_dir()?;
+
+    if let Some(global) = &context.config.global {
+        println!("{}", "global".yellow().bold());
+        print_links(&global.links);
+    }
 
     let active_profile_name = if let Some(profiles) = &context.config.profiles {
         find_active_profile(profiles, context.state.active_profile.as_ref(), &cwd)
@@ -33,19 +39,22 @@ pub fn run(context: &Context) -> Result<(), Box<dyn Error>> {
             };
 
             println!("{}", title);
-
-            let mut links: Vec<_> = profile.links.iter().collect();
-            links.sort_by_key(|(k, _)| k.as_str());
-
-            for (i, (target, source)) in links.iter().enumerate() {
-                let is_last = i == links.len() - 1;
-                let branch = if is_last { "└──" } else { "├──" };
-                println!("{} {} -> {}", branch, target, source);
-            }
+            print_links(&profile.links);
         }
-    } else {
-        println!("No profiles defined in config.");
+    } else if context.config.global.is_none() {
+        println!("No profiles or global links defined in config.");
     }
 
     Ok(())
+}
+
+fn print_links(links: &IndexMap<String, String>) {
+    let mut links_vec: Vec<_> = links.iter().collect();
+    links_vec.sort_by_key(|(k, _)| k.as_str());
+
+    for (i, (target, source)) in links_vec.iter().enumerate() {
+        let is_last = i == links_vec.len() - 1;
+        let branch = if is_last { "└──" } else { "├──" };
+        println!("{} {} -> {}", branch, target, source);
+    }
 }
