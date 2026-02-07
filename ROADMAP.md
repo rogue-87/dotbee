@@ -10,6 +10,7 @@ _Goal: Solidify the core specification and ensure reliability._
 - [x] **LSP Support:** Complete the `schema/dotsy.json` JSON schema to provide completions and validation via Taplo.
 - [x] **Shell Completions:** Provide completions for `bash`, `zsh` and `fish`.
 - [x] **Documentation:** Finalize the `README.md` and establish a `CHANGELOG.md`.
+- [ ] **Wiki:** Write a wiki that explains everything about dotsy.
 - [ ] **Usage Examples:** Write usage examples and troubleshooting tips.
 - [ ] **Code Documentation:** Add inline comments and docstrings to the codebase.
 - [ ] **Core Testing:** Implement a comprehensive test suite for symlink management (creation, purging, repair) and edge cases.
@@ -48,5 +49,15 @@ _Goal: Broaden support and optimize the user experience._
 - [x] Initialize `CHANGELOG.md` and merge `TODO.md` into `ROADMAP.md`
 
 ## Future Explorations
+
+- **System Profile:** A way to setup symlinks for system configuration files (/etc)
+  - Should invoke sudo
+  - To activate it, use --system with `dotsy switch`
+  Possible commands to use this flag: [switch, purge, repair]
+
+- **Dotfiles Fetching:** Dotsy should be able to fetch a remote dotfiles repository
+  - Using git
+  - Using http (simply download it)
+  - perhaps some other methods
 
 To infinity and beyond...
