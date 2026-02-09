@@ -41,14 +41,14 @@ pub fn run(context: &mut Context) -> Result<(), Box<dyn Error>> {
 fn repair_links(links: &IndexMap<String, String>, cwd: &Path, dry_run: bool, message: &Message) -> Result<(), Box<dyn Error>> {
     for (target_str, source_str) in links {
         let source_path = cwd.join(source_str);
-        let target_path = expand_path(target_str)?;
+        let target_path = expand_path(target_str);
 
         if !source_path.exists() {
             message.unlink(&format!("Source missing: {}", source_path.display()));
             continue;
         }
 
-        let status = get_destination_status(&source_path, &target_path)?;
+        let status = get_destination_status(&source_path, &target_path);
 
         match status {
             DestinationStatus::AlreadyLinked => {}

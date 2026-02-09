@@ -54,14 +54,14 @@ fn check_links(links: &IndexMap<String, String>, cwd: &Path, context: &Context) 
 
     for (target_str, source_str) in sorted_links {
         let source_path = cwd.join(source_str);
-        let target_path = expand_path(target_str)?;
+        let target_path = expand_path(target_str);
 
         if !source_path.exists() {
             message.error(&format!("{} (Source missing: {})", source_str, source_path.display()));
             continue;
         }
 
-        let status = get_destination_status(&source_path, &target_path)?;
+        let status = get_destination_status(&source_path, &target_path);
 
         match status {
             DestinationStatus::AlreadyLinked => {

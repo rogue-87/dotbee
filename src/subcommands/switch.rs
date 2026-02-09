@@ -3,7 +3,7 @@ use dotsy::config::ConflictAction;
 use dotsy::context::Context;
 use dotsy::message::Message;
 use dotsy::utils::{
-    DestinationStatus, expand_path, find_active_profile, get_destination_status, get_hostname, symlink_with_parents, unlink_profile_links,
+    expand_path, find_active_profile, get_destination_status, get_hostname, symlink_with_parents, unlink_profile_links, DestinationStatus,
 };
 use indexmap::IndexMap;
 use std::{
@@ -89,14 +89,14 @@ fn process_links(
 ) -> Result<(), Box<dyn Error>> {
     for (target_str, source_str) in links {
         let source_path = cwd.join(source_str);
-        let target_path = expand_path(target_str).unwrap();
+        let target_path = expand_path(target_str);
 
         if !source_path.exists() {
             message.error(&format!("Source not found: {}", source_path.display()));
             continue;
         }
 
-        let status = get_destination_status(&source_path, &target_path).unwrap();
+        let status = get_destination_status(&source_path, &target_path);
 
         match status {
             DestinationStatus::AlreadyLinked => message.success(&format!("{} → {} (already linked)", source_str, target_str)),

@@ -12,17 +12,17 @@ pub enum DestinationStatus {
     NonExistent,
 }
 
-pub fn expand_path(path_str: &str) -> Result<PathBuf, Box<dyn std::error::Error>> {
-    if path_str.starts_with("~") {
+pub fn expand_path(path_str: &str) -> PathBuf {
+    if path_str.starts_with('~') {
         if let Some(home) = dirs::home_dir() {
             if path_str == "~" {
-                return Ok(home);
+                return home;
             }
             // safely strip prefix
-            return Ok(home.join(path_str.trim_start_matches("~/")));
+            return home.join(path_str.trim_start_matches("~/"));
         }
     }
-    Ok(PathBuf::from(path_str))
+    PathBuf::from(path_str)
 }
 
 pub fn is_links_active(links: &IndexMap<String, String>, cwd: &Path) -> bool {
@@ -30,27 +30,12 @@ pub fn is_links_active(links: &IndexMap<String, String>, cwd: &Path) -> bool {
         return false;
     }
 
-    for (target_str, source_str) in links {
-        let target_path = match expand_path(target_str) {
-            Ok(p) => p,
-            Err(_) => return false,
-        };
+    links.iter().all(|(target_str, source_str)| {
+        let target_path = expand_path(target_str);
         let source_path = cwd.join(source_str);
 
-        if !target_path.is_symlink() {
-            return false;
-        }
-
-        match fs::read_link(&target_path) {
-            Ok(p) => {
-                if p != source_path {
-                    return false;
-                }
-            }
-            Err(_) => return false,
-        }
-    }
-    true
+        target_path.is_symlink() && fs::read_link(&target_path).map_or(false, |p| p == source_path)
+    })
 }
 
 pub fn is_profile_active(profile: &Profile, cwd: &Path) -> bool {
@@ -66,28 +51,25 @@ pub fn find_active_profile<'a>(
         return Some(name);
     }
 
-    for (name, profile) in profiles {
-        if is_profile_active(profile, cwd) {
-            return Some(name);
-        }
-    }
-    None
+    profiles
+        .iter()
+        .find(|(_, profile)| is_profile_active(profile, cwd))
+        .map(|(name, _)| name)
 }
 
-pub fn get_destination_status(source: &Path, destination: &Path) -> Result<DestinationStatus, Box<dyn std::error::Error>> {
+pub fn get_destination_status(source: &Path, destination: &Path) -> DestinationStatus {
     if !destination.exists() && !destination.is_symlink() {
-        return Ok(DestinationStatus::NonExistent);
+        return DestinationStatus::NonExistent;
     }
 
-    let target = match fs::read_link(destination) {
-        Ok(v) => v,
-        Err(_) => return Ok(DestinationStatus::ConflictingFileOrDir),
+    let Ok(target) = fs::read_link(destination) else {
+        return DestinationStatus::ConflictingFileOrDir;
     };
 
     match (destination.is_symlink(), target == source) {
-        (true, true) => Ok(DestinationStatus::AlreadyLinked),
-        (true, false) => Ok(DestinationStatus::ConflictingSymlink),
-        _ => Ok(DestinationStatus::ConflictingFileOrDir),
+        (true, true) => DestinationStatus::AlreadyLinked,
+        (true, false) => DestinationStatus::ConflictingSymlink,
+        _ => DestinationStatus::ConflictingFileOrDir,
     }
 }
 
@@ -98,18 +80,15 @@ pub fn unlink_profile_links(
     message: &Message,
 ) -> Result<(), Box<dyn std::error::Error>> {
     for (target_str, source_str) in links {
-        let target_path = expand_path(target_str)?;
+        let target_path = expand_path(target_str);
         let source_path = cwd.join(source_str);
 
-        if target_path.is_symlink() {
-            let actual_target = fs::read_link(&target_path)?;
-            if actual_target == source_path {
-                if dry_run {
-                    message.delete(&format!("Would unlink {} (dry run)", target_str));
-                } else {
-                    fs::remove_file(&target_path)?;
-                    message.delete(&format!("Unlinked {}", target_str));
-                }
+        if target_path.is_symlink() && fs::read_link(&target_path)? == source_path {
+            if dry_run {
+                message.delete(&format!("Would unlink {} (dry run)", target_str));
+            } else {
+                fs::remove_file(&target_path)?;
+                message.delete(&format!("Unlinked {}", target_str));
             }
         }
     }
@@ -126,19 +105,63 @@ pub fn symlink_with_parents(source: &Path, destination: &PathBuf, dry_run: bool)
     std::os::unix::fs::symlink(source, destination)
 }
 
+// HACK: I should probably use hostname or nix crate for this
 pub fn get_hostname() -> Option<String> {
-    if let Ok(hostname) = std::env::var("HOSTNAME") {
-        return Some(hostname);
-    }
-    if let Ok(hostname) = std::env::var("HOST") {
-        return Some(hostname);
+    std::process::Command::new("hostname")
+        .output()
+        .ok()
+        .filter(|output| output.status.success())
+        .and_then(|output| String::from_utf8(output.stdout).ok())
+        .map(|s| s.trim().to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_expand_path_no_tilde() {
+        assert_eq!(expand_path("foo/bar"), PathBuf::from("foo/bar"));
+        assert_eq!(expand_path("/abs/path"), PathBuf::from("/abs/path"));
     }
 
-    std::process::Command::new("hostname").output().ok().and_then(|output| {
-        if output.status.success() {
-            String::from_utf8(output.stdout).ok().map(|s| s.trim().to_string())
-        } else {
-            None
+    #[test]
+    fn test_expand_path_with_tilde() {
+        if let Some(home) = dirs::home_dir() {
+            assert_eq!(expand_path("~"), home);
+            assert_eq!(expand_path("~/foo"), home.join("foo"));
         }
-    })
+    }
+
+    #[test]
+    fn test_get_destination_status() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = tempdir()?;
+        let source = dir.path().join("source");
+        let destination = dir.path().join("dest");
+
+        // NonExistent
+        assert_eq!(get_destination_status(&source, &destination), DestinationStatus::NonExistent);
+
+        // ConflictingFileOrDir
+        fs::write(&destination, "content")?;
+        assert_eq!(
+            get_destination_status(&source, &destination),
+            DestinationStatus::ConflictingFileOrDir
+        );
+        fs::remove_file(&destination)?;
+
+        // AlreadyLinked
+        std::os::unix::fs::symlink(&source, &destination)?;
+        assert_eq!(get_destination_status(&source, &destination), DestinationStatus::AlreadyLinked);
+
+        // ConflictingSymlink
+        let other_source = dir.path().join("other_source");
+        fs::remove_file(&destination)?;
+        std::os::unix::fs::symlink(&other_source, &destination)?;
+        assert_eq!(get_destination_status(&source, &destination), DestinationStatus::ConflictingSymlink);
+
+        Ok(())
+    }
 }
