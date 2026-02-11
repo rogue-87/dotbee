@@ -1,5 +1,5 @@
-use crate::config::Profile;
-use crate::message::Message;
+use config::Profile;
+use context::message::Message;
 use indexmap::IndexMap;
 use std::fs;
 use std::path::{Path, PathBuf};

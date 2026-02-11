@@ -1,4 +1,4 @@
-use crate::config::icons::{IconStyle, Icons};
+use config::icons::{IconStyle, Icons};
 use colored::Colorize;
 
 #[derive(Debug, Clone)]

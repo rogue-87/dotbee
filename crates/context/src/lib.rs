@@ -1,7 +1,9 @@
-use crate::config::Config;
-use crate::config::icons::IconStyle;
+pub mod message;
+
+use config::icons::IconStyle;
+use config::Config;
 use crate::message::Message;
-use crate::state::State;
+use state::State;
 use std::error::Error;
 
 #[derive(Debug, Clone)]

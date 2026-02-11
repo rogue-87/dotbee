@@ -1,6 +1,6 @@
 use colored::Colorize;
-use dotsy::context::Context;
-use dotsy::utils::{find_active_profile, is_profile_active};
+use context::Context;
+use utils::{find_active_profile, is_profile_active};
 use indexmap::IndexMap;
 use std::error::Error;
 

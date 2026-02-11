@@ -3,7 +3,7 @@ mod subcommands;
 
 use clap::Parser;
 use cli::{Cli, SubCommand};
-use dotsy::context::Context;
+use context::Context;
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {

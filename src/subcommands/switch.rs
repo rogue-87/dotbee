@@ -1,8 +1,8 @@
 use colored::Colorize;
-use dotsy::config::ConflictAction;
-use dotsy::context::Context;
-use dotsy::message::Message;
-use dotsy::utils::{
+use config::ConflictAction;
+use context::Context;
+use context::message::Message;
+use utils::{
     expand_path, find_active_profile, get_destination_status, get_hostname, symlink_with_parents, unlink_profile_links, DestinationStatus,
 };
 use indexmap::IndexMap;

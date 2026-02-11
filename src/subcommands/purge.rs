@@ -1,6 +1,6 @@
 use colored::Colorize;
-use dotsy::context::Context;
-use dotsy::utils::{find_active_profile, unlink_profile_links};
+use context::Context;
+use utils::{find_active_profile, unlink_profile_links};
 use std::error::Error;
 
 pub fn run(context: &mut Context) -> Result<(), Box<dyn Error>> {
