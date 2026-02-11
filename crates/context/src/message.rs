@@ -37,6 +37,6 @@ impl Message {
     }
 
     pub fn delete(&self, msg: &str) {
-        println!("{}{}", self.icons.delete.magenta(), msg);
+        println!("{}{}", self.icons.delete.red(), msg);
     }
 }
