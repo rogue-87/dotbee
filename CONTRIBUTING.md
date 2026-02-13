@@ -96,16 +96,17 @@ We follow the [Conventional Commits](https://www.conventionalcommits.org/) speci
 
 Please use the following prefixes in your commit messages:
 
--   `feat:`: A new feature for the user.
--   `fix:`: A bugfix for the user.
--   `docs:`: Documentation only changes.
--   `style:`: Changes that do not affect the meaning of the code (white-space, formatting, etc).
--   `refactor:`: A code change that neither fixes a bug nor adds a feature.
--   `perf:`: A code change that improves performance.
--   `test:`: Adding missing tests or correcting existing tests.
--   `chore:`: Changes to the build process or auxiliary tools and libraries.
+- `feat:`: A new feature for the user.
+- `fix:`: A bugfix for the user.
+- `docs:`: Documentation only changes.
+- `style:`: Changes that do not affect the meaning of the code (white-space, formatting, etc).
+- `refactor:`: A code change that neither fixes a bug nor adds a feature.
+- `perf:`: A code change that improves performance.
+- `test:`: Adding missing tests or correcting existing tests.
+- `chore:`: Changes to the build process or auxiliary tools and libraries.
 
 Example:
+
 ```bash
 git commit -m "feat: add support for custom icon sets"
 ```
@@ -123,6 +124,16 @@ git commit -m "feat: add support for custom icon sets"
    git push origin feature/amazing-feature
    ```
 5. **Open a Merge Request** (MR) against the `main` branch of the `dotsy` repository.
+
+## Note on Using LLM/AI Assistants
+
+After using `gemini-cli` and ending up blindly shooting myself in the foot, I decided to limit the capabilities of AI and let it only give suggestions and hints and only spit out code when I tell it to do so.
+
+While the LLM being able to quickly edit files is convenient, it's also kind of a double edged sword as it will make you lazier.
+
+I also suggest not copying and pasting but rather writing it line by line, word by word. This should help you discover errors and mistakes before they even happen.
+
+Personally, I find it very useful for things like writing small scripts like the ones I have inside of `.mise-tasks` and for doing annoying tasks like writing change-logs.
 
 ## License
 

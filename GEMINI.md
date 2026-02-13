@@ -58,6 +58,13 @@
 -   **Safety:** Due to the nature of file system operations (symlinking, deletion), testing in a container is highly encouraged.
 -   **State:** Uses `~/.local/state/dotsy/state.json` to persist information like the currently active profile.
 
+## Interaction Guidelines
+
+-   **Suggestions & Hints:** Prioritize providing suggestions, architectural hints, and explanations over immediate file edits or command execution.
+-   **Show, Don't Just Do:** When proposing changes, show the code blocks in the chat and explain the logic. Only edit files or run commands when explicitly told to do so by the user.
+-   **Command Execution:** Explain the purpose and effect of shell commands. Avoid running them directly; instead, present them for review or wait for a specific request to execute.
+-   **Collaborative Approach:** Act more as a consultant/guide. Focus on helping the user understand the codebase and the "why" behind changes.
+
 ## CLI Commands (`src/cli.rs`)
 
 -   `init`: Initialize Dotsy by creating a default configuration.
