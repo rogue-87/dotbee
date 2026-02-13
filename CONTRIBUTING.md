@@ -21,7 +21,7 @@ To work on Dotsy, you will need the following tools installed on your system:
    ```
 
 2. **Install dependencies:**
-   If you are using `mise`, it might automatically detect and suggest installing the required tools defined in `mise.toml` (like `wrkflw`).
+   If you are using `mise`, it might automatically detect and suggest installing the required tools defined in `mise.toml`.
 
 ## Development Workflow
 
@@ -40,9 +40,10 @@ cargo run -- <command>
 # Example: cargo run -- list
 ```
 
-### ⚠️ Safe Development (Recommended)
+### Safe Development (Recommended)
 
-Since Dotsy creates and removes symlinks, **I strongly recommend running it inside a container** during development to avoid accidentally modifying your personal dotfiles.
+> [!WARNING]
+> Since Dotsy creates and removes symlinks, **I strongly recommend running it inside a container** during development to avoid accidentally modifying your personal dotfiles.
 
 I've provided `mise` tasks to simplify this process:
 
@@ -82,17 +83,17 @@ We adhere to standard Rust coding conventions.
 
 Please ensure that you add tests for any new features or bug fixes.
 
-To run the GitLab CI pipeline locally (requires `wrkflw`):
+To run the GitLab CI pipeline locally (requires `glab cli`):
 
 ```bash
-mise run test-gitlab-ci
+mise run validate-ci
 ```
 
 ## Submitting Changes
 
 ### Commit Message Guidelines
 
-We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification for our commit messages. This helps in generating changelogs and managing versions.
+Follow the [Conventional Commits](https://www.conventionalcommits.org/) specification for commit messages. This helps in generating change-logs and managing versions.
 
 Please use the following prefixes in your commit messages:
 
