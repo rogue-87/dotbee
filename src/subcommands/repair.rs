@@ -1,15 +1,10 @@
 use colored::Colorize;
-use dotsy::context::Context;
-use dotsy::message::Message;
-use dotsy::utils::{DestinationStatus, expand_path, find_active_profile, get_destination_status, symlink_with_parents};
+use context::Context;
 use indexmap::IndexMap;
 use std::error::Error;
-use std::path::Path;
+use utils::{expand_path, get_destination_status, symlink_with_parents, DestinationStatus};
 
 pub fn run(context: &mut Context) -> Result<(), Box<dyn Error>> {
-    let cwd = std::env::current_dir()?;
-    let message = &context.message;
-
     if context.dry_run {
         println!("{}", "Repairing symlinks (dry run)...".bold().blue());
     } else {
@@ -18,46 +13,70 @@ pub fn run(context: &mut Context) -> Result<(), Box<dyn Error>> {
 
     if let Some(global) = &context.config.global {
         println!("Checking global links...");
-        repair_links(&global.links, &cwd, context.dry_run, message)?;
+        let links = global.links.clone();
+        repair_links(&links, context)?;
     }
 
     if let Some(profiles) = &context.config.profiles {
-        if let Some(active_name) = find_active_profile(profiles, context.state.active_profile.as_ref(), &cwd) {
-            if let Some(profile) = profiles.get(active_name) {
-                message.info(&format!("Checking active profile '{}'...", active_name.green()));
-                repair_links(&profile.links, &cwd, context.dry_run, message)?;
+        if let Some(active_name) = context.state.active_profile.clone() {
+            if let Some(profile) = profiles.get(&active_name) {
+                let name_yellow = active_name.green();
+                context.message.info(&format!("Checking active profile '{}'...", name_yellow));
+                let links = profile.links.clone();
+                repair_links(&links, context)?;
             } else {
-                message.info(&format!("Active profile '{}' not found in config.", active_name));
+                context.message.info(&format!("Active profile '{}' not found in config.", active_name));
             }
         } else {
-            message.info("No active profile detected. Only global links were checked.");
+            context.message.info("No active profile detected. Only global links were checked.");
         }
     }
 
-    message.success("Repair complete.");
+    if !context.dry_run {
+        context.state.save()?;
+    }
+
+    context.message.success("Repair complete.");
     Ok(())
 }
 
-fn repair_links(links: &IndexMap<String, String>, cwd: &Path, dry_run: bool, message: &Message) -> Result<(), Box<dyn Error>> {
+fn repair_links(links: &IndexMap<String, String>, context: &mut Context) -> Result<(), Box<dyn Error>> {
+    let cwd = std::env::current_dir()?;
+    let dry_run = context.dry_run;
+    let message = &context.message;
+
     for (target_str, source_str) in links {
         let source_path = cwd.join(source_str);
-        let target_path = expand_path(target_str)?;
+        let target_path = expand_path(target_str);
 
         if !source_path.exists() {
             message.unlink(&format!("Source missing: {}", source_path.display()));
             continue;
         }
 
-        let status = get_destination_status(&source_path, &target_path)?;
+        let status = get_destination_status(&source_path, &target_path);
 
         match status {
-            DestinationStatus::AlreadyLinked => {}
+            DestinationStatus::AlreadyLinked => {
+                if !dry_run {
+                    context.state.add_managed_link(
+                        source_str.clone(),
+                        target_str.clone(),
+                        source_path.is_dir(),
+                    );
+                }
+            }
             DestinationStatus::NonExistent => {
                 if dry_run {
                     message.success(&format!("Would link {} -> {} (dry run)", source_str, target_str));
                 } else {
                     message.success(&format!("Linking {} -> {}", source_str, target_str));
                     symlink_with_parents(&source_path, &target_path, dry_run)?;
+                    context.state.add_managed_link(
+                        source_str.clone(),
+                        target_str.clone(),
+                        source_path.is_dir(),
+                    );
                 }
             }
             DestinationStatus::ConflictingSymlink => {
@@ -69,6 +88,11 @@ fn repair_links(links: &IndexMap<String, String>, cwd: &Path, dry_run: bool, mes
                         std::fs::remove_file(&target_path)?;
                     }
                     symlink_with_parents(&source_path, &target_path, dry_run)?;
+                    context.state.add_managed_link(
+                        source_str.clone(),
+                        target_str.clone(),
+                        source_path.is_dir(),
+                    );
                 }
             }
             DestinationStatus::ConflictingFileOrDir => {

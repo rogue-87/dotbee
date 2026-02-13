@@ -1,7 +1,9 @@
-use crate::config::Config;
-use crate::config::icons::IconStyle;
+pub mod message;
+
 use crate::message::Message;
-use crate::state::State;
+use config::Config;
+use config::icons::IconStyle;
+pub use state::{ManagedLink, State};
 use std::error::Error;
 
 #[derive(Debug, Clone)]

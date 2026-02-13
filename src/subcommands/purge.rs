@@ -1,41 +1,65 @@
 use colored::Colorize;
-use dotsy::context::Context;
-use dotsy::utils::{find_active_profile, unlink_profile_links};
-use std::error::Error;
+use context::Context;
+use std::{error::Error, fs, io};
+use utils::expand_path;
 
 pub fn run(context: &mut Context) -> Result<(), Box<dyn Error>> {
-    let cwd = std::env::current_dir()?;
-    let message = &context.message;
+    let msg = &context.message;
 
     if context.dry_run {
-        println!("{}", "Purging active links (dry run)...".bold().red());
+        println!("{}", "Purging all managed links from state (dry run)...".bold().red());
     } else {
-        println!("{}", "Purging active links...".bold().red());
+        println!("{}", "Purging all managed links from state...".bold().red());
     }
 
-    if let Some(global) = &context.config.global {
-        println!("Unlinking global links...");
-        unlink_profile_links(&global.links, &cwd, context.dry_run, message)?;
+    let mut links_to_unlink = Vec::new();
+    if !context.dry_run {
+        // Clone links from state before clearing it in memory
+        links_to_unlink = context.state.managed_links.clone();
+        context.state.managed_links.clear(); // Clear state in memory
     }
 
-    if let Some(profiles) = &context.config.profiles {
-        if let Some(active_name) = find_active_profile(profiles, context.state.active_profile.as_ref(), &cwd) {
-            if let Some(profile) = profiles.get(active_name) {
-                message.info(&format!("Unlinking active profile '{}'...", active_name.yellow()));
-                unlink_profile_links(&profile.links, &cwd, context.dry_run, message)?;
+    for link in &links_to_unlink {
+        let target_path = expand_path(&link.target); // Resolve target path from state
+
+        if target_path.is_symlink() {
+            // Optionally, one could check if target_path.read_link() == expand_path(&link.source)
+            // For a robust purge, we assume anything recorded in state as a symlink should be removed.
+
+            if context.dry_run {
+                msg.delete(&format!("Would unlink {} (dry run)", link.target));
             } else {
-                message.info(&format!("Active profile '{}' not found in config. Skipping.", active_name));
+                // Attempt to remove the symlink
+                match fs::remove_file(&target_path) {
+                    Ok(_) => msg.delete(&format!("Unlinked {}", link.target)),
+                    Err(e) => {
+                        // Handle errors: target might be gone, or permissions issues
+                        if e.kind() == io::ErrorKind::NotFound {
+                            // Target was not found but was in state. Log a warning.
+                            msg.warning(&format!("Target '{}' not found but was in state.", link.target));
+                        } else {
+                            // Other errors like permission denied
+                            msg.error(&format!("Failed to unlink {}: {}", link.target, e));
+                        }
+                    }
+                }
             }
         } else {
-            // If resolve returns None, nothing to purge.
+            // Path in state is not a symlink or does not exist. Log a warning.
+            if !context.dry_run {
+                msg.warning(&format!("Path '{}' in state is not a symlink or does not exist.", link.target));
+            }
         }
     }
 
     if context.dry_run {
-        message.success("Purge dry run complete.");
+        msg.success("Purge dry run complete.");
     } else {
+        // Save the cleared managed_links list
+        context.state.save()?;
+        // Also clear active profile as per original behavior
         context.state.clear_active_profile()?;
-        message.success("Purge complete.");
+        msg.success("Purge complete.");
     }
 
     Ok(())

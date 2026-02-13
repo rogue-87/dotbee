@@ -1,10 +1,10 @@
 use colored::Colorize;
-use dotsy::context::Context;
+use context::Context;
 use std::error::Error;
 use std::fs;
 use std::path::Path;
 
-const DEFAULT_CONFIG: &str = include_str!("../config/dotsy.toml");
+const DEFAULT_CONFIG: &str = include_str!("../../crates/config/src/dotsy.toml");
 
 pub fn run(context: &Context) -> Result<(), Box<dyn Error>> {
     let path_string = context.config_path.clone().unwrap_or("dotsy.toml".to_string());

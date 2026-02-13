@@ -1,5 +1,5 @@
-use crate::config::icons::{IconStyle, Icons};
 use colored::Colorize;
+use config::icons::{IconStyle, Icons};
 
 #[derive(Debug, Clone)]
 pub struct Message {
@@ -37,6 +37,6 @@ impl Message {
     }
 
     pub fn delete(&self, msg: &str) {
-        println!("{}{}", self.icons.delete.magenta(), msg);
+        println!("{}{}", self.icons.delete.red(), msg);
     }
 }
