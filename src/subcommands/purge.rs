@@ -6,20 +6,16 @@ use utils::expand_tilde;
 pub fn run(context: &mut Context) -> Result<(), Box<dyn Error>> {
     let msg = &context.message;
 
-    if context.dry_run {
-        println!("{}", "Purging all managed links from state (dry run)...".bold().red());
-    } else {
-        println!("{}", "Purging all managed links from state...".bold().red());
-    }
+    println!("{}", "Purging all managed links from state...".bold().red());
 
-    let mut links_to_unlink = Vec::new();
+    let mut links_to_remove = vec![];
     if !context.dry_run {
         // Clone links from state before clearing it in memory
-        links_to_unlink = context.state.managed_links.clone();
+        links_to_remove = context.state.managed_links.clone();
         context.state.managed_links.clear(); // Clear state in memory
     }
 
-    for link in &links_to_unlink {
+    for link in &links_to_remove {
         let target_path = expand_tilde(&link.target); // Resolve target path from state
 
         if target_path.is_symlink() {
@@ -27,11 +23,11 @@ pub fn run(context: &mut Context) -> Result<(), Box<dyn Error>> {
             // For a robust purge, we assume anything recorded in state as a symlink should be removed.
 
             if context.dry_run {
-                msg.delete(&format!("Would unlink {} (dry run)", link.target));
+                msg.delete(&format!("Would remove {} (dry run)", link.target));
             } else {
                 // Attempt to remove the symlink
                 match fs::remove_file(&target_path) {
-                    Ok(_) => msg.delete(&format!("Unlinked {}", link.target)),
+                    Ok(_) => msg.delete(&format!("Removed {}", link.target)),
                     Err(e) => {
                         // Handle errors: target might be gone, or permissions issues
                         if e.kind() == io::ErrorKind::NotFound {
@@ -39,7 +35,7 @@ pub fn run(context: &mut Context) -> Result<(), Box<dyn Error>> {
                             msg.warning(&format!("Target '{}' not found but was in state.", link.target));
                         } else {
                             // Other errors like permission denied
-                            msg.error(&format!("Failed to unlink {}: {}", link.target, e));
+                            msg.error(&format!("Failed to remove {}: {}", link.target, e));
                         }
                     }
                 }

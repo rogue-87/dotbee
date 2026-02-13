@@ -1,5 +1,6 @@
-use context::message::Message;
+use context::Context;
 use indexmap::IndexMap;
+use std::error::Error;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -41,27 +42,8 @@ pub fn get_destination_status(source: &Path, destination: &Path) -> DestinationS
     }
 }
 
-pub fn unlink_profile_links(links: &IndexMap<String, String>, dry_run: bool, message: &Message) -> Result<(), Box<dyn std::error::Error>> {
-    let cwd = std::env::current_dir()?;
-
-    for (target_str, source_str) in links {
-        let target_path = expand_tilde(target_str);
-        let source_path = cwd.join(source_str);
-
-        if target_path.is_symlink() && fs::read_link(&target_path)? == source_path {
-            if dry_run {
-                message.delete(&format!("Would unlink {} (dry run)", target_str));
-            } else {
-                fs::remove_file(&target_path)?;
-                message.delete(&format!("Unlinked {}", target_str));
-            }
-        }
-    }
-    Ok(())
-}
-
-pub fn symlink_with_parents(source: &Path, destination: &PathBuf, dry_run: bool) -> std::io::Result<()> {
-    if dry_run {
+pub fn symlink_with_parents(source: &Path, destination: &PathBuf, context: &Context) -> std::io::Result<()> {
+    if context.dry_run {
         return Ok(());
     }
     if let Some(parent) = destination.parent() {

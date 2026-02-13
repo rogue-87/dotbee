@@ -7,7 +7,7 @@ use std::{
     fs,
     path::{Path, PathBuf},
 };
-use utils::{expand_tilde, get_destination_status, get_hostname, symlink_with_parents, unlink_profile_links, DestinationStatus};
+use utils::{DestinationStatus, expand_tilde, get_destination_status, get_hostname, symlink_with_parents};
 
 pub fn run(profile_name: Option<String>, context: &mut Context) -> Result<(), Box<dyn Error>> {
     let profile_name = match profile_name {
@@ -47,14 +47,16 @@ pub fn run(profile_name: Option<String>, context: &mut Context) -> Result<(), Bo
                     let name_yellow = active_name.yellow();
                     context.message.info(&format!("Unlinking active profile '{}'...", name_yellow));
                     let links = profile.links.clone();
-                    unlink_profile_links(&links, context.dry_run, &context.message).unwrap();
+                    remove_profile_links(&links, context).unwrap();
                     if !context.dry_run {
                         for (target, _) in &links {
                             context.state.managed_links.retain(|l| &l.target != target);
                         }
                     }
                 } else {
-                    context.message.warning(&format!("Active profile '{}' not found in config.", active_name));
+                    context
+                        .message
+                        .warning(&format!("Active profile '{}' not found in config.", active_name));
                 }
             }
         }
@@ -106,26 +108,26 @@ fn process_links(
 
         match status {
             DestinationStatus::AlreadyLinked => {
-                context.message.success(&format!("{} → {} (already linked)", source_str, target_str));
+                context
+                    .message
+                    .success(&format!("{} → {} (already linked)", source_str, target_str));
                 if !dry_run {
-                    context.state.add_managed_link(
-                        source_str.clone(),
-                        target_str.clone(),
-                        source_path.is_dir(),
-                    );
+                    context
+                        .state
+                        .add_managed_link(source_str.clone(), target_str.clone(), source_path.is_dir());
                 }
             }
             DestinationStatus::NonExistent => {
                 if dry_run {
-                    context.message.link(&format!("Would link {} → {} (dry run)", source_str, target_str));
+                    context
+                        .message
+                        .link(&format!("Would link {} → {} (dry run)", source_str, target_str));
                 } else {
-                    symlink_with_parents(&source_path, &target_path, dry_run).unwrap();
+                    symlink_with_parents(&source_path, &target_path, context).unwrap();
                     context.message.link(&format!("{} → {}", source_str, target_str));
-                    context.state.add_managed_link(
-                        source_str.clone(),
-                        target_str.clone(),
-                        source_path.is_dir(),
-                    );
+                    context
+                        .state
+                        .add_managed_link(source_str.clone(), target_str.clone(), source_path.is_dir());
                 }
             }
             _ => {
@@ -137,7 +139,9 @@ fn process_links(
                 // Resolve the action based on config or prompt
                 let action = match default_conflict_strategy {
                     Some(ConflictAction::Ask) | None => {
-                        context.message.error(&format!("Conflict: {} → {} ({})", source_str, target_str, kind));
+                        context
+                            .message
+                            .error(&format!("Conflict: {} → {} ({})", source_str, target_str, kind));
                         if dry_run {
                             context.message.warning("Skipping conflict resolution in dry run");
                             ConflictAction::Skip
@@ -148,13 +152,11 @@ fn process_links(
                     Some(action) => action.clone(),
                 };
 
-                handle_conflict(action.clone(), &source_path, &target_path, Path::new(source_str), dry_run).unwrap();
+                handle_conflict(action.clone(), &source_path, &target_path, Path::new(source_str), context).unwrap();
                 if !dry_run && (action == ConflictAction::Overwrite || action == ConflictAction::Adopt) {
-                     context.state.add_managed_link(
-                        source_str.clone(),
-                        target_str.clone(),
-                        source_path.is_dir(),
-                    );
+                    context
+                        .state
+                        .add_managed_link(source_str.clone(), target_str.clone(), source_path.is_dir());
                 }
             }
         }
@@ -167,7 +169,7 @@ fn handle_conflict(
     source: &Path,
     destination: &PathBuf,
     rel_source: &Path,
-    dry_run: bool,
+    context: &Context,
 ) -> Result<(), Box<dyn Error>> {
     let repo_root = std::env::current_dir()?;
 
@@ -175,7 +177,7 @@ fn handle_conflict(
         ConflictAction::Skip => println!("  Skipped {}", destination.display()),
         ConflictAction::Abort => return Err("Operation aborted by user.".into()),
         ConflictAction::Overwrite => {
-            if dry_run {
+            if context.dry_run {
                 println!("  Would overwrite: {} → {} (dry run)", source.display(), destination.display());
             } else {
                 if destination.is_symlink() || destination.is_file() || destination.is_dir() {
@@ -188,12 +190,12 @@ fn handle_conflict(
                         fs::remove_file(destination).unwrap();
                     }
                 }
-                symlink_with_parents(source, destination, dry_run).unwrap();
+                symlink_with_parents(source, destination, context).unwrap();
                 println!("  Overwrite: {} → {}", source.display(), destination.display());
             }
         }
         ConflictAction::Adopt => {
-            if dry_run {
+            if context.dry_run {
                 println!("  Would adopt: {} → {} (dry run)", source.display(), destination.display());
             } else {
                 let adopt_target = repo_root.join(rel_source);
@@ -219,7 +221,7 @@ fn handle_conflict(
                 // for now, simple rename :D
                 fs::rename(destination, &adopt_target).unwrap();
                 // Now link back
-                symlink_with_parents(source, destination, dry_run).unwrap();
+                symlink_with_parents(source, destination, context).unwrap();
                 println!("  Adopted: {} → {}", source.display(), destination.display());
             }
         }
@@ -228,3 +230,23 @@ fn handle_conflict(
 
     Ok(())
 }
+
+pub fn remove_profile_links(links: &IndexMap<String, String>,  context: &Context) -> Result<(), Box<dyn Error>> {
+    let cwd = std::env::current_dir()?;
+
+    for (target_str, source_str) in links {
+        let target_path = expand_tilde(target_str);
+        let source_path = cwd.join(source_str);
+
+        if target_path.is_symlink() && fs::read_link(&target_path)? == source_path {
+            if context.dry_run {
+                context.message.delete(&format!("Would unlink {} (dry run)", target_str));
+            } else {
+                fs::remove_file(&target_path)?;
+                context.message.delete(&format!("Unlinked {}", target_str));
+            }
+        }
+    }
+    Ok(())
+}
+

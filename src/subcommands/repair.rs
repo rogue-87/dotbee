@@ -71,7 +71,7 @@ fn repair_links(links: &IndexMap<String, String>, context: &mut Context) -> Resu
                     message.success(&format!("Would link {} -> {} (dry run)", source_str, target_str));
                 } else {
                     message.success(&format!("Linking {} -> {}", source_str, target_str));
-                    symlink_with_parents(&source_path, &target_path, dry_run)?;
+                    symlink_with_parents(&source_path, &target_path, context)?;
                     context.state.add_managed_link(
                         source_str.clone(),
                         target_str.clone(),
@@ -87,7 +87,7 @@ fn repair_links(links: &IndexMap<String, String>, context: &mut Context) -> Resu
                     if target_path.exists() || target_path.is_symlink() {
                         std::fs::remove_file(&target_path)?;
                     }
-                    symlink_with_parents(&source_path, &target_path, dry_run)?;
+                    symlink_with_parents(&source_path, &target_path, context)?;
                     context.state.add_managed_link(
                         source_str.clone(),
                         target_str.clone(),
