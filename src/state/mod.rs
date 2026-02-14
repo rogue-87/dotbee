@@ -13,6 +13,7 @@ pub struct ManagedLink {
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct State {
     pub active_profile: Option<String>,
+    pub dotfiles_path: Option<PathBuf>,
     pub managed_links: Vec<ManagedLink>,
 }
 

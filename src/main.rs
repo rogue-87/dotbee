@@ -19,7 +19,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     match dotsy.subcommand {
         SubCommand::Completion { shell } => subcommands::completion::run(shell)?,
         SubCommand::Doctor => subcommands::doctor::run(&context)?,
-        SubCommand::Init => subcommands::init::run(&context)?,
+        SubCommand::Init => subcommands::init::run(&mut context)?,
         SubCommand::List => subcommands::list::run(&context)?,
         SubCommand::Purge => subcommands::purge::run(&mut context)?,
         SubCommand::Repair => subcommands::repair::run(&mut context)?,

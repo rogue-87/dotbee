@@ -47,14 +47,18 @@ pub fn run(context: &Context) -> Result<(), Box<dyn Error>> {
 }
 
 fn check_links(links: &IndexMap<String, String>, context: &Context) -> Result<(), Box<dyn Error>> {
-    let cwd = std::env::current_dir()?;
+    let dotfiles_root = context
+        .state
+        .dotfiles_path
+        .clone()
+        .unwrap_or_else(|| std::env::current_dir().expect("Failed to get current directory"));
     let msg = &context.message;
 
     let mut sorted_links: Vec<_> = links.iter().collect();
     sorted_links.sort_by_key(|(k, _)| k.as_str());
 
     for (target_str, source_str) in sorted_links {
-        let source_path = cwd.join(source_str);
+        let source_path = dotfiles_root.join(source_str);
         let target_path = expand_tilde(target_str);
 
         if !source_path.exists() {

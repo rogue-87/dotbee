@@ -7,7 +7,7 @@ use indexmap::IndexMap;
 use serde::Deserialize;
 use std::error::Error;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Deserialize, Default, Clone)]
 #[serde(default)]
@@ -36,17 +36,18 @@ pub struct Profile {
 }
 
 impl Config {
-    pub fn load(path: Option<String>) -> Result<Config, Box<dyn Error>> {
+    pub fn load(path: Option<String>) -> Result<(Config, Option<PathBuf>), Box<dyn Error>> {
         let path_str = path.unwrap_or_else(|| "dotsy.toml".to_string());
         let config_path = Path::new(&path_str);
 
         if !config_path.exists() {
             // If no config, return a default empty config.
-            return Ok(Config::default());
+            return Ok((Config::default(), None));
         }
 
         let content = fs::read_to_string(config_path)?;
         let config: Config = toml::from_str(&content)?;
-        Ok(config)
+        let abs_path = fs::canonicalize(config_path)?;
+        Ok((config, Some(abs_path)))
     }
 }

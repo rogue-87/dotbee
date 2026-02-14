@@ -74,7 +74,11 @@ pub fn run(profile_name: Option<String>, context: &mut Context) -> Result<(), Bo
 
 fn generate_plan(target_profile: &str, context: &Context) -> Result<Vec<SwitchAction>, Box<dyn Error>> {
     let mut plan = Vec::new();
-    let cwd = std::env::current_dir()?;
+    let dotfiles_root = context
+        .state
+        .dotfiles_path
+        .clone()
+        .unwrap_or_else(|| std::env::current_dir().expect("Failed to get current directory"));
 
     // Phase A: Unlink old active profile (if switching to a different one)
     if let Some(active_name) = &context.state.active_profile
@@ -84,7 +88,7 @@ fn generate_plan(target_profile: &str, context: &Context) -> Result<Vec<SwitchAc
     {
         for (target_str, source_str) in &profile.links {
             let target_path = expand_tilde(target_str);
-            let source_path = cwd.join(source_str);
+            let source_path = dotfiles_root.join(source_str);
 
             // Only unlink if it actually points to our repo source
             if target_path.is_symlink() && fs::read_link(&target_path)? == source_path {
@@ -118,7 +122,7 @@ fn generate_plan(target_profile: &str, context: &Context) -> Result<Vec<SwitchAc
     }
 
     for (target_str, source_str) in links_to_process {
-        let source_path = cwd.join(&source_str);
+        let source_path = dotfiles_root.join(&source_str);
         let target_path = expand_tilde(&target_str);
 
         if !source_path.exists() {
@@ -291,7 +295,11 @@ fn handle_conflict(
     rel_source: &str,
     context: &Context,
 ) -> Result<(), Box<dyn Error>> {
-    let repo_root = std::env::current_dir()?;
+    let dotfiles_root = context
+        .state
+        .dotfiles_path
+        .clone()
+        .unwrap_or_else(|| std::env::current_dir().expect("Failed to get current directory"));
 
     match action {
         ConflictAction::Skip => println!("  Skipped {}", destination.display()),
@@ -311,7 +319,7 @@ fn handle_conflict(
             println!("  Overwrite: {} → {}", source.display(), destination.display());
         }
         ConflictAction::Adopt => {
-            let adopt_target = repo_root.join(rel_source);
+            let adopt_target = dotfiles_root.join(rel_source);
             if let Some(parent) = adopt_target.parent() {
                 fs::create_dir_all(parent).unwrap();
             }
@@ -338,11 +346,15 @@ fn handle_conflict(
 }
 
 pub fn remove_profile_links(links: &IndexMap<String, String>, context: &Context) -> Result<(), Box<dyn Error>> {
-    let cwd = std::env::current_dir()?;
+    let dotfiles_root = context
+        .state
+        .dotfiles_path
+        .clone()
+        .unwrap_or_else(|| std::env::current_dir().expect("Failed to get current directory"));
 
     for (target_str, source_str) in links {
         let target_path = expand_tilde(target_str);
-        let source_path = cwd.join(source_str);
+        let source_path = dotfiles_root.join(source_str);
 
         if target_path.is_symlink() && fs::read_link(&target_path)? == source_path {
             if context.dry_run {

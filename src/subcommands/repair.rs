@@ -55,12 +55,16 @@ pub fn run(context: &mut Context) -> Result<(), Box<dyn Error>> {
 
 fn generate_plan(context: &Context) -> Result<Vec<RepairAction>, Box<dyn Error>> {
     let mut plan = Vec::new();
-    let cwd = std::env::current_dir()?;
+    let dotfiles_root = context
+        .state
+        .dotfiles_path
+        .clone()
+        .unwrap_or_else(|| std::env::current_dir().expect("Failed to get current directory"));
 
     // Helper to process a set of links
     let process_links = |links: &indexmap::IndexMap<String, String>, plan: &mut Vec<RepairAction>| {
         for (target_str, source_str) in links {
-            let source_path = cwd.join(source_str);
+            let source_path = dotfiles_root.join(source_str);
             let target_path = expand_tilde(target_str);
 
             if !source_path.exists() {
