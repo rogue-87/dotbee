@@ -64,8 +64,4 @@ impl State {
             self.managed_links.push(link);
         }
     }
-
-    pub fn clear_managed_links(&mut self) {
-        self.managed_links.clear();
-    }
 }
