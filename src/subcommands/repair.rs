@@ -47,7 +47,7 @@ pub fn run(context: &mut Context) -> Result<(), Box<dyn Error>> {
     if context.dry_run {
         execute_dry_run(&plan, context);
     } else {
-        execute_real_run(plan, context)?;
+        execute(plan, context)?;
     }
 
     Ok(())
@@ -174,7 +174,7 @@ fn execute_dry_run(plan: &[Action], context: &Context) {
     }
 }
 
-fn execute_real_run(plan: Vec<Action>, context: &mut Context) -> Result<(), Box<dyn Error>> {
+fn execute(plan: Vec<Action>, context: &mut Context) -> Result<(), Box<dyn Error>> {
     let msg = &context.message;
     println!("{}", "Executing Repair...".bold().blue());
 
