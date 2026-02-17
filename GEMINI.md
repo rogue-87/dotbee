@@ -17,9 +17,10 @@
     -   `main.rs`: Entry point.
     -   `cli.rs`: CLI command definitions and argument parsing.
     -   `subcommands/`: Implementation of specific CLI commands.
-    -   `config/`: Configuration handling (TOML parsing, conflict resolution, icons).
-    -   `state.rs`: Persistent state management (e.g., active profile).
-    -   `utils.rs`: Shared utility functions (path expansion, symlink status, unlinking).
+    -   `config/`: Configuration module, handling TOML parsing, conflict resolution, and icons. Contains `dotsy.toml` as a default/example configuration.
+    -   `context/`: Application context management, holding configuration, state, and messaging.
+    -   `state/`: Persistent state management (e.g., active profile, managed links).
+    -   `utils.rs`: Shared utility functions (path expansion, symlink status, removing links).
 -   `mise.toml`: Project tool configuration and development tasks.
 -   `Cargo.toml`: Rust dependencies and package metadata.
 -   `schema/dotsy.json`: JSON schema for `dotsy.toml` validation.
@@ -73,3 +74,4 @@
 -   `doctor`: Show currently active profile and status of all symlinks.
 -   `purge`: Remove all symlinks managed by Dotsy.
 -   `repair`: Attempt to fix broken or incorrect symlinks.
+-   `completion <shell>`: Generate shell completion scripts for supported shells.
