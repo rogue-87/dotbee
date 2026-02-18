@@ -1,7 +1,5 @@
 // my shitty helper code
-mod config;
 mod context;
-mod state;
 mod utils;
 // my shitty app code
 mod cli;

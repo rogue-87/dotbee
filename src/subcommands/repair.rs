@@ -1,5 +1,6 @@
 use crate::context::Context;
-use crate::utils::{DestinationStatus, expand_tilde, get_destination_status, symlink};
+use crate::context::manager::{SymlinkManager, SymlinkStatus};
+use crate::utils::expand_tilde;
 use colored::Colorize;
 use std::error::Error;
 use std::path::PathBuf;
@@ -56,6 +57,7 @@ pub fn run(context: &mut Context) -> Result<(), Box<dyn Error>> {
 fn generate_plan(context: &Context) -> Result<Vec<Action>, Box<dyn Error>> {
     let mut plan = Vec::new();
     let dotfiles_root = context
+        .manager
         .state
         .dotfiles_path
         .clone()
@@ -75,13 +77,13 @@ fn generate_plan(context: &Context) -> Result<Vec<Action>, Box<dyn Error>> {
                 continue;
             }
 
-            let status = get_destination_status(&source_path, &target_path);
+            let status = context.manager.symlink.check(&source_path, &target_path);
             let is_dir = source_path.is_dir();
 
             match status {
-                DestinationStatus::AlreadyLinked => {
+                SymlinkStatus::AlreadyLinked => {
                     // Check if it's in state. If not, we should update state.
-                    let in_state = context.state.managed_links.iter().any(|l| l.target == *target_str);
+                    let in_state = context.manager.state.managed_links.iter().any(|l| l.target == *target_str);
                     if !in_state {
                         plan.push(Action::UpdateState {
                             source_display: source_str.clone(),
@@ -90,7 +92,7 @@ fn generate_plan(context: &Context) -> Result<Vec<Action>, Box<dyn Error>> {
                         });
                     }
                 }
-                DestinationStatus::NonExistent => {
+                SymlinkStatus::NonExistent => {
                     plan.push(Action::Link {
                         source_display: source_str.clone(),
                         target_display: target_str.clone(),
@@ -99,7 +101,7 @@ fn generate_plan(context: &Context) -> Result<Vec<Action>, Box<dyn Error>> {
                         is_dir,
                     });
                 }
-                DestinationStatus::ConflictingSymlink => {
+                SymlinkStatus::ConflictingSymlink => {
                     plan.push(Action::Relink {
                         source_display: source_str.clone(),
                         target_display: target_str.clone(),
@@ -108,7 +110,7 @@ fn generate_plan(context: &Context) -> Result<Vec<Action>, Box<dyn Error>> {
                         is_dir,
                     });
                 }
-                DestinationStatus::ConflictingFileOrDir => {
+                SymlinkStatus::ConflictingFileOrDir => {
                     plan.push(Action::NotifyConflict {
                         target_display: target_str.clone(),
                     });
@@ -118,13 +120,13 @@ fn generate_plan(context: &Context) -> Result<Vec<Action>, Box<dyn Error>> {
     };
 
     // Global links
-    if let Some(global) = &context.config.global {
+    if let Some(global) = &context.manager.config.global {
         process_links(&global.links, &mut plan);
     }
 
     // Active profile links
-    if let Some(profiles) = &context.config.profiles {
-        if let Some(active_name) = &context.state.active_profile {
+    if let Some(profiles) = &context.manager.config.profiles {
+        if let Some(active_name) = &context.manager.state.active_profile {
             if let Some(profile) = profiles.get(active_name) {
                 process_links(&profile.links, &mut plan);
             }
@@ -188,8 +190,8 @@ fn execute(plan: Vec<Action>, context: &mut Context) -> Result<(), Box<dyn Error
                 is_dir,
             } => {
                 msg.success(&format!("Linking {} -> {}", source_display, target_display));
-                symlink(&source_path, &target_path, context)?;
-                context.state.add_managed_link(source_display, target_display, is_dir);
+                context.manager.symlink.create(&source_path, &target_path)?;
+                context.manager.state.add_managed_link(source_display, target_display, is_dir);
             }
             Action::Relink {
                 source_display,
@@ -202,8 +204,8 @@ fn execute(plan: Vec<Action>, context: &mut Context) -> Result<(), Box<dyn Error
                 if target_path.exists() || target_path.is_symlink() {
                     std::fs::remove_file(&target_path)?;
                 }
-                symlink(&source_path, &target_path, context)?;
-                context.state.add_managed_link(source_display, target_display, is_dir);
+                context.manager.symlink.create(&source_path, &target_path)?;
+                context.manager.state.add_managed_link(source_display, target_display, is_dir);
             }
             Action::UpdateState {
                 source_display,
@@ -211,7 +213,7 @@ fn execute(plan: Vec<Action>, context: &mut Context) -> Result<(), Box<dyn Error
                 is_dir,
             } => {
                 msg.info(&format!("Updating state for: {} -> {}", source_display, target_display));
-                context.state.add_managed_link(source_display, target_display, is_dir);
+                context.manager.state.add_managed_link(source_display, target_display, is_dir);
             }
             Action::NotifyConflict { target_display } => {
                 msg.error(&format!(
@@ -225,7 +227,7 @@ fn execute(plan: Vec<Action>, context: &mut Context) -> Result<(), Box<dyn Error
         }
     }
 
-    context.state.save()?;
+    context.manager.state.save()?;
     msg.success("Repair complete.");
     Ok(())
 }

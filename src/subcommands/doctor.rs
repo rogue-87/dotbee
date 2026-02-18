@@ -1,5 +1,6 @@
 use crate::context::Context;
-use crate::utils::{DestinationStatus, expand_tilde, get_destination_status};
+use crate::context::manager::{SymlinkManager, SymlinkStatus};
+use crate::utils::expand_tilde;
 use colored::Colorize;
 use indexmap::IndexMap;
 use std::error::Error;
@@ -12,7 +13,7 @@ pub fn run(context: &Context) -> Result<(), Box<dyn Error>> {
     let mut config_links = indexmap::IndexMap::new();
 
     // Check global symlinks
-    if let Some(global) = &context.config.global {
+    if let Some(global) = &context.manager.config.global {
         println!("{}", "Global Links:".bold());
         for (k, v) in &global.links {
             config_links.insert(k.clone(), v.clone());
@@ -21,7 +22,7 @@ pub fn run(context: &Context) -> Result<(), Box<dyn Error>> {
     }
 
     // Check current profile symlinks
-    let profiles = match &context.config.profiles {
+    let profiles = match &context.manager.config.profiles {
         Some(profiles) => profiles,
         None => {
             message.info("No profiles defined in dotsy.toml.");
@@ -30,7 +31,7 @@ pub fn run(context: &Context) -> Result<(), Box<dyn Error>> {
         }
     };
 
-    let active_profile = match &context.state.active_profile {
+    let active_profile = match &context.manager.state.active_profile {
         Some(active_profile) => active_profile,
         None => {
             message.info("No active profile detected.");
@@ -61,7 +62,7 @@ pub fn run(context: &Context) -> Result<(), Box<dyn Error>> {
 
 fn check_ghost_links(config_links: &IndexMap<String, String>, context: &Context) -> Result<(), Box<dyn Error>> {
     let mut ghosts = Vec::new();
-    for managed in &context.state.managed_links {
+    for managed in &context.manager.state.managed_links {
         if !config_links.contains_key(&managed.target) {
             ghosts.push(managed);
         }
@@ -82,6 +83,7 @@ fn check_ghost_links(config_links: &IndexMap<String, String>, context: &Context)
 
 fn check_links(links: &IndexMap<String, String>, context: &Context) -> Result<(), Box<dyn Error>> {
     let dotfiles_root = context
+        .manager
         .state
         .dotfiles_path
         .clone()
@@ -100,19 +102,19 @@ fn check_links(links: &IndexMap<String, String>, context: &Context) -> Result<()
             continue;
         }
 
-        let status = get_destination_status(&source_path, &target_path);
+        let status = context.manager.symlink.check(&source_path, &target_path);
 
         match status {
-            DestinationStatus::AlreadyLinked => {
+            SymlinkStatus::AlreadyLinked => {
                 msg.success(&format!("{} -> {}", source_str, target_str));
             }
-            DestinationStatus::ConflictingSymlink => {
+            SymlinkStatus::ConflictingSymlink => {
                 msg.warning(&format!("{} (Symlink points to wrong target)", target_str));
             }
-            DestinationStatus::ConflictingFileOrDir => {
+            SymlinkStatus::ConflictingFileOrDir => {
                 msg.error(&format!("{} (Conflict: File/Dir exists)", target_str));
             }
-            DestinationStatus::NonExistent => {
+            SymlinkStatus::NonExistent => {
                 msg.warning(&format!("{} (Not linked)", source_str));
             }
         }
