@@ -9,7 +9,8 @@
 -   **Language:** Rust (Edition 2024, v1.92.0)
 -   **CLI Framework:** `clap`
 -   **Configuration:** TOML
--   **Core Logic:** Symlink management (creation, purging, repair), state tracking.
+-   **Core Logic:** Managed through a centralized `Manager` component within the `Context`.
+-   **State:** Persistent state tracking via JSON.
 
 ## Key Files & Directories
 
@@ -17,10 +18,15 @@
     -   `main.rs`: Entry point.
     -   `cli.rs`: CLI command definitions and argument parsing.
     -   `subcommands/`: Implementation of specific CLI commands.
-    -   `config/`: Configuration module, handling TOML parsing, conflict resolution, and icons. Contains `dotsy.toml` as a default/example configuration.
-    -   `context/`: Application context management, holding configuration, state, and messaging.
-    -   `state/`: Persistent state management (e.g., active profile, managed links).
-    -   `utils.rs`: Shared utility functions (path expansion, symlink status, removing links).
+    -   `context/`: Application context management.
+        -   `mod.rs`: Defines the `Context` struct, coordinating the `Manager` and `Message` components.
+        -   `message.rs`: UI messaging and icon handling.
+        -   `manager/`: Core business logic coordination.
+            -   `mod.rs`: The `Manager` struct, responsible for initializing and holding `Symlink`, `State`, and `Config`.
+            -   `symlink.rs`: Stateless symlink management (creation and status checking).
+            -   `state/`: Persistent state management (active profile, managed links).
+            -   `config/`: Configuration management (TOML parsing, conflict resolution, icons).
+    -   `utils.rs`: Shared utility functions (path expansion, hostname retrieval).
 -   `mise.toml`: Project tool configuration and development tasks.
 -   `Cargo.toml`: Rust dependencies and package metadata.
 -   `schema/dotsy.json`: JSON schema for `dotsy.toml` validation.
