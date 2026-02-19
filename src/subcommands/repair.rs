@@ -125,12 +125,14 @@ fn generate_plan(context: &Context) -> Result<Vec<Action>, Box<dyn Error>> {
     }
 
     // Active profile links
-    if let Some(profiles) = &context.manager.config.profiles {
-        if let Some(active_name) = &context.manager.state.active_profile {
-            if let Some(profile) = profiles.get(active_name) {
-                process_links(&profile.links, &mut plan);
-            }
-        }
+    if let Some(profile) = context
+        .manager
+        .config
+        .profiles
+        .as_ref()
+        .and_then(|profiles| context.manager.state.active_profile.as_ref().and_then(|name| profiles.get(name)))
+    {
+        process_links(&profile.links, &mut plan);
     }
 
     Ok(plan)
