@@ -12,6 +12,11 @@ use std::path::{Path, PathBuf};
 #[derive(Debug, Deserialize, Default, Clone)]
 #[serde(default)]
 pub struct Config {
+    /// This is NOT part of `dotsy.toml` file
+    /// This is used to get the path of the config file
+    #[serde(skip)]
+    pub path: Option<PathBuf>,
+    // config
     pub settings: Settings,
     pub global: Option<Global>,
     pub profiles: Option<IndexMap<String, Profile>>,
@@ -36,18 +41,19 @@ pub struct Profile {
 }
 
 impl Config {
-    pub fn load(path: Option<String>) -> Result<(Config, Option<PathBuf>), Box<dyn Error>> {
+    pub fn load(path: Option<String>) -> Result<Config, Box<dyn Error>> {
         let path_str = path.unwrap_or_else(|| "dotsy.toml".to_string());
         let config_path = Path::new(&path_str);
 
+        // If no config, return a default empty config.
         if !config_path.exists() {
-            // If no config, return a default empty config.
-            return Ok((Config::default(), None));
+            return Ok(Config::default());
         }
 
         let content = fs::read_to_string(config_path)?;
-        let config: Config = toml::from_str(&content)?;
-        let abs_path = fs::canonicalize(config_path)?;
-        Ok((config, Some(abs_path)))
+        let mut config: Config = toml::from_str(&content)?;
+        config.path = Some(fs::canonicalize(config_path)?);
+
+        Ok(config)
     }
 }

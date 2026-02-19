@@ -1,5 +1,4 @@
-use crate::config::ConflictAction;
-use crate::context::Context;
+use crate::context::{Context, manager::{SymlinkManager, SymlinkStatus, config::ConflictAction}};
 use colored::Colorize;
 use std::{
     error::Error,
@@ -7,7 +6,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::utils::{DestinationStatus, expand_tilde, get_destination_status, get_hostname, symlink};
+use crate::utils::{expand_tilde, get_hostname};
 
 /// Actions for the switch command.
 /// These are possible list of actions that
@@ -46,7 +45,7 @@ pub fn run(profile_name: Option<String>, context: &mut Context) -> Result<(), Bo
     let target_profile = match profile_name {
         Some(name) => name,
         None => {
-            if !context.config.settings.auto_detect_profile.unwrap_or(false) {
+            if !context.manager.config.settings.auto_detect_profile.unwrap_or(false) {
                 return Err("No profile specified and auto_detect_profile is disabled.".into());
             }
 
@@ -76,6 +75,7 @@ pub fn run(profile_name: Option<String>, context: &mut Context) -> Result<(), Bo
 fn generate_plan(target_profile: &str, context: &Context) -> Result<Vec<Action>, Box<dyn Error>> {
     let mut plan = Vec::new();
     let dotfiles_root = context
+        .manager
         .state
         .dotfiles_path
         .clone()
@@ -84,13 +84,13 @@ fn generate_plan(target_profile: &str, context: &Context) -> Result<Vec<Action>,
     // 1. Resolve all links that SHOULD exist in the target configuration
     let mut desired_links = indexmap::IndexMap::new();
 
-    if let Some(global) = &context.config.global {
+    if let Some(global) = &context.manager.config.global {
         for (k, v) in &global.links {
             desired_links.insert(k.clone(), v.clone());
         }
     }
 
-    if let Some(profiles) = &context.config.profiles {
+    if let Some(profiles) = &context.manager.config.profiles {
         if let Some(profile) = profiles.get(target_profile) {
             for (k, v) in &profile.links {
                 desired_links.insert(k.clone(), v.clone());
@@ -103,7 +103,7 @@ fn generate_plan(target_profile: &str, context: &Context) -> Result<Vec<Action>,
     }
 
     // 2. Phase A: Identify Ghost Links (links in state but not in desired config)
-    for link in &context.state.managed_links {
+    for link in &context.manager.state.managed_links {
         if !desired_links.contains_key(&link.target) {
             let target_path = expand_tilde(&link.target);
             let source_path = dotfiles_root.join(&link.source);
@@ -131,18 +131,18 @@ fn generate_plan(target_profile: &str, context: &Context) -> Result<Vec<Action>,
             continue;
         }
 
-        let status = get_destination_status(&source_path, &target_path);
+        let status = context.manager.symlink.check(&source_path, &target_path);
         let is_dir = source_path.is_dir();
 
         match status {
-            DestinationStatus::AlreadyLinked => {
+            SymlinkStatus::AlreadyLinked => {
                 plan.push(Action::UpdateState {
                     source_display: source_str.clone(),
                     target_display: target_str.clone(),
                     is_dir,
                 });
             }
-            DestinationStatus::NonExistent => {
+            SymlinkStatus::NonExistent => {
                 plan.push(Action::CreateNewLink {
                     source_display: source_str.clone(),
                     target_display: target_str.clone(),
@@ -151,8 +151,8 @@ fn generate_plan(target_profile: &str, context: &Context) -> Result<Vec<Action>,
                     is_dir,
                 });
             }
-            DestinationStatus::ConflictingSymlink | DestinationStatus::ConflictingFileOrDir => {
-                let kind = if status == DestinationStatus::ConflictingSymlink {
+            SymlinkStatus::ConflictingSymlink | SymlinkStatus::ConflictingFileOrDir => {
+                let kind = if status == SymlinkStatus::ConflictingSymlink {
                     "Symlink"
                 } else {
                     "File/Dir"
@@ -221,7 +221,7 @@ fn execute_dry(plan: &[Action], target_profile: &str, context: &Context) {
 
 fn execute(plan: Vec<Action>, target_profile: &str, context: &mut Context) -> Result<(), Box<dyn Error>> {
     let msg = &context.message;
-    let strategy = context.config.settings.on_conflict.clone();
+    let strategy = context.manager.config.settings.on_conflict.clone();
 
     for action in plan {
         match action {
@@ -231,7 +231,7 @@ fn execute(plan: Vec<Action>, target_profile: &str, context: &mut Context) -> Re
             } => {
                 fs::remove_file(&target_path)?;
                 msg.delete(&format!("Removed ghost link: {}", target_display));
-                context.state.managed_links.retain(|l| l.target != target_display);
+                context.manager.state.managed_links.retain(|l| l.target != target_display);
             }
             Action::CreateNewLink {
                 source_display,
@@ -240,9 +240,9 @@ fn execute(plan: Vec<Action>, target_profile: &str, context: &mut Context) -> Re
                 target_path,
                 is_dir,
             } => {
-                symlink(&source_path, &target_path, context)?;
+                context.manager.symlink.create(&source_path, &target_path)?;
                 msg.link(&format!("{} -> {}", source_display, target_display));
-                context.state.add_managed_link(source_display, target_display, is_dir);
+                context.manager.state.add_managed_link(source_display, target_display, is_dir);
             }
             Action::UpdateState {
                 source_display,
@@ -250,7 +250,7 @@ fn execute(plan: Vec<Action>, target_profile: &str, context: &mut Context) -> Re
                 is_dir,
             } => {
                 msg.success(&format!("{} -> {} (already linked)", source_display, target_display));
-                context.state.add_managed_link(source_display, target_display, is_dir);
+                context.manager.state.add_managed_link(source_display, target_display, is_dir);
             }
             Action::Conflict {
                 source_display,
@@ -271,7 +271,7 @@ fn execute(plan: Vec<Action>, target_profile: &str, context: &mut Context) -> Re
 
                 if action == ConflictAction::Overwrite || action == ConflictAction::Adopt {
                     let is_dir = source_path.is_dir();
-                    context.state.add_managed_link(source_display, target_display, is_dir);
+                    context.manager.state.add_managed_link(source_display, target_display, is_dir);
                 }
             }
             Action::SourceMissing { source_display, .. } => {
@@ -280,7 +280,7 @@ fn execute(plan: Vec<Action>, target_profile: &str, context: &mut Context) -> Re
         }
     }
 
-    context.state.set_active_profile(target_profile.to_string())?;
+    context.manager.state.set_active_profile(target_profile.to_string())?;
     msg.success(&format!("Switched to profile '{}'", target_profile));
 
     Ok(())
@@ -294,6 +294,7 @@ fn handle_conflict(
     context: &Context,
 ) -> Result<(), Box<dyn Error>> {
     let dotfiles_root = context
+        .manager
         .state
         .dotfiles_path
         .clone()
@@ -313,7 +314,7 @@ fn handle_conflict(
                     fs::remove_file(destination).unwrap();
                 }
             }
-            symlink(source, destination, context).unwrap();
+            context.manager.symlink.create(source, destination)?;
             println!("  Overwrite: {} → {}", source.display(), destination.display());
         }
         ConflictAction::Adopt => {
@@ -332,7 +333,7 @@ fn handle_conflict(
                 }
             }
             fs::rename(destination, &adopt_target).unwrap();
-            symlink(source, destination, context).unwrap();
+            context.manager.symlink.create(source, destination)?;
             println!("  Adopted: {} → {}", source.display(), destination.display());
         }
         ConflictAction::Ask => {

@@ -1,5 +1,4 @@
-use crate::context::Context;
-use crate::state::ManagedLink;
+use crate::context::{Context, manager::state::ManagedLink};
 use crate::utils::expand_tilde;
 use colored::Colorize;
 use std::{error::Error, fs, io, path::PathBuf};
@@ -45,7 +44,7 @@ pub fn run(context: &mut Context) -> Result<(), Box<dyn Error>> {
 fn generate_plan(context: &Context) -> Vec<Action> {
     let mut plan: Vec<Action> = vec![];
 
-    for link in &context.state.managed_links {
+    for link in &context.manager.state.managed_links {
         let target_path = expand_tilde(&link.target);
 
         // Check if the path exists or is a broken symlink
@@ -89,12 +88,12 @@ fn execute(plan: Vec<Action>, context: &mut Context) -> Result<(), Box<dyn Error
             } => match fs::remove_file(&path) {
                 Ok(_) => {
                     msg.delete(&format!("Removed {}", target_display));
-                    context.state.managed_links.retain(|l| l != &link_state);
+                    context.manager.state.managed_links.retain(|l| l != &link_state);
                 }
                 Err(e) => {
                     if e.kind() == io::ErrorKind::NotFound {
                         msg.warning(&format!("Target '{}' disappeared during execution.", target_display));
-                        context.state.managed_links.retain(|l| l != &link_state);
+                        context.manager.state.managed_links.retain(|l| l != &link_state);
                     } else {
                         msg.error(&format!("Failed to remove {}: {}", target_display, e));
                     }
@@ -105,7 +104,7 @@ fn execute(plan: Vec<Action>, context: &mut Context) -> Result<(), Box<dyn Error
                 link_state,
             } => {
                 msg.warning(&format!("Cleaning up stale state for missing link: {}", target_display));
-                context.state.managed_links.retain(|l| l != &link_state);
+                context.manager.state.managed_links.retain(|l| l != &link_state);
             }
             Action::NotifyNotASymlink { target_display, .. } => {
                 msg.error(&format!("Aborting removal of {}: path is a real file/directory.", target_display));
@@ -113,8 +112,8 @@ fn execute(plan: Vec<Action>, context: &mut Context) -> Result<(), Box<dyn Error
         }
     }
 
-    context.state.save()?;
-    context.state.clear_active_profile()?;
+    context.manager.state.save()?;
+    context.manager.state.clear_active_profile()?;
     msg.success("Purge complete.");
     Ok(())
 }
