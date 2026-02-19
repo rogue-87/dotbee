@@ -33,15 +33,20 @@ impl Manager {
 
         let config = Config::load(effective_config_path)?;
 
-        // If a config was loaded from a file, update dotfiles_path in state
-        if let Some(path) = &config.path {
-            if let Some(parent) = path.parent() {
-                let dotfiles_path = parent.to_path_buf();
-                if state.dotfiles_path.as_ref() != Some(&dotfiles_path) {
-                    state.dotfiles_path = Some(dotfiles_path);
-                    state.save()?;
-                }
-            }
+        // Get the parent directory of the loaded config file (if any)
+        if let Some(new_dotfiles_path) = config
+            .path
+            .as_ref()
+            .and_then(|p| p.parent())
+            // Only proceed if this path is DIFFERENT from the current state
+            .filter(|p| state.dotfiles_path.as_deref() != Some(p))
+        {
+            state.dotfiles_path = Some(new_dotfiles_path.to_path_buf());
+            state.save()?;
+        } else if config.path.is_none() && state.dotfiles_path.is_some() {
+            // If no config path was loaded but state has one, it means the state is stale.
+            state.dotfiles_path = None;
+            state.save()?;
         }
 
         Ok(Self { symlink, state, config })

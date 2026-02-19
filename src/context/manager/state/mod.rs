@@ -53,8 +53,8 @@ impl State {
         self.save()
     }
 
-    pub fn clear_active_profile(&mut self) -> io::Result<()> {
-        self.active_profile = None;
+    pub fn clear(&mut self) -> io::Result<()> {
+        *self = Self::default();
         self.save()
     }
 
