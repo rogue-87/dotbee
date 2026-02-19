@@ -12,7 +12,10 @@ pub fn run(context: &mut Context) -> Result<(), Box<dyn Error>> {
     let message = &context.message;
 
     if config_path.exists() {
-        message.error(&format!("{} already exists in the current directory.", path_string.to_string_lossy()));
+        message.error(&format!(
+            "{} already exists in the current directory.",
+            path_string.to_string_lossy()
+        ));
         return Ok(());
     }
 
@@ -24,10 +27,11 @@ pub fn run(context: &mut Context) -> Result<(), Box<dyn Error>> {
     fs::write(config_path, DEFAULT_CONFIG)?;
 
     // Update state to remember this dotfiles directory
-    if let Ok(abs_config_path) = fs::canonicalize(config_path)
-        && let Some(parent) = abs_config_path.parent()
+    if let Some(parent) = fs::canonicalize(config_path)
+        .ok()
+        .and_then(|abs_config_path| abs_config_path.parent().map(|dotfiles_path| dotfiles_path.to_path_buf()))
     {
-        context.manager.state.dotfiles_path = Some(parent.to_path_buf());
+        context.manager.state.dotfiles_path = Some(parent);
         context.manager.state.save()?;
     }
 

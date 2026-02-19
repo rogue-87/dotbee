@@ -88,7 +88,7 @@ fn check_links(links: &IndexMap<String, String>, context: &Context) -> Result<()
         .dotfiles_path
         .clone()
         .unwrap_or_else(|| std::env::current_dir().expect("Failed to get current directory"));
-    let msg = &context.message;
+    let message = &context.message;
 
     let mut sorted_links: Vec<_> = links.iter().collect();
     sorted_links.sort_by_key(|(k, _)| k.as_str());
@@ -98,7 +98,7 @@ fn check_links(links: &IndexMap<String, String>, context: &Context) -> Result<()
         let target_path = expand_tilde(target_str);
 
         if !source_path.exists() {
-            msg.error(&format!("{} (Source missing: {})", source_str, source_path.display()));
+            message.error(&format!("{} (Source missing: {})", source_str, source_path.display()));
             continue;
         }
 
@@ -106,16 +106,16 @@ fn check_links(links: &IndexMap<String, String>, context: &Context) -> Result<()
 
         match status {
             SymlinkStatus::AlreadyLinked => {
-                msg.success(&format!("{} -> {}", source_str, target_str));
+                message.success(&format!("{} -> {}", source_str, target_str));
             }
             SymlinkStatus::ConflictingSymlink => {
-                msg.warning(&format!("{} (Symlink points to wrong target)", target_str));
+                message.warning(&format!("{} (Symlink points to wrong target)", target_str));
             }
             SymlinkStatus::ConflictingFileOrDir => {
-                msg.error(&format!("{} (Conflict: File/Dir exists)", target_str));
+                message.error(&format!("{} (Conflict: File/Dir exists)", target_str));
             }
             SymlinkStatus::NonExistent => {
-                msg.warning(&format!("{} (Not linked)", source_str));
+                message.warning(&format!("{} (Not linked)", source_str));
             }
         }
     }
