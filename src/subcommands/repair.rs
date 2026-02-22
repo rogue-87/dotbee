@@ -1,5 +1,5 @@
 use crate::context::Context;
-use crate::context::manager::{SymlinkManager, SymlinkStatus};
+use crate::context::manager::symlink::SymlinkStatus;
 use crate::utils::expand_tilde;
 use colored::Colorize;
 use std::error::Error;
@@ -59,8 +59,8 @@ fn generate_plan(context: &Context) -> Result<Vec<Action>, Box<dyn Error>> {
     let dotfiles_root = context
         .manager
         .state
-        .dotfiles_path
-        .clone()
+        .get_dotfiles_path()
+        .map(|p| p.to_path_buf())
         .unwrap_or_else(|| std::env::current_dir().expect("Failed to get current directory"));
 
     // Helper to process a set of links
@@ -83,7 +83,7 @@ fn generate_plan(context: &Context) -> Result<Vec<Action>, Box<dyn Error>> {
             match status {
                 SymlinkStatus::AlreadyLinked => {
                     // Check if it's in state. If not, we should update state.
-                    let in_state = context.manager.state.managed_links.iter().any(|l| l.target == *target_str);
+                    let in_state = context.manager.state.get_managed_links().iter().any(|l| l.target == *target_str);
                     if !in_state {
                         plan.push(Action::UpdateState {
                             source_display: source_str.clone(),
@@ -120,19 +120,18 @@ fn generate_plan(context: &Context) -> Result<Vec<Action>, Box<dyn Error>> {
     };
 
     // Global links
-    if let Some(global) = &context.manager.config.global {
-        process_links(&global.links, &mut plan);
+    if let Some(global_links) = context.manager.config.get_global_links() {
+        process_links(global_links, &mut plan);
     }
 
     // Active profile links
     if let Some(profile) = context
         .manager
-        .config
-        .profiles
-        .as_ref()
-        .and_then(|profiles| context.manager.state.active_profile.as_ref().and_then(|name| profiles.get(name)))
+        .state
+        .get_active_profile()
+        .and_then(|active_profile| context.manager.config.get_profile(active_profile).ok())
     {
-        process_links(&profile.links, &mut plan);
+        process_links(&profile.links, &mut plan)
     }
 
     Ok(plan)
@@ -193,7 +192,7 @@ fn execute(plan: Vec<Action>, context: &mut Context) -> Result<(), Box<dyn Error
             } => {
                 msg.success(&format!("Linking {} -> {}", source_display, target_display));
                 context.manager.symlink.create(&source_path, &target_path)?;
-                context.manager.state.add_managed_link(source_display, target_display, is_dir);
+                context.manager.state.add_managed_link(source_display, target_display, is_dir)?;
             }
             Action::Relink {
                 source_display,
@@ -207,7 +206,7 @@ fn execute(plan: Vec<Action>, context: &mut Context) -> Result<(), Box<dyn Error
                     std::fs::remove_file(&target_path)?;
                 }
                 context.manager.symlink.create(&source_path, &target_path)?;
-                context.manager.state.add_managed_link(source_display, target_display, is_dir);
+                context.manager.state.add_managed_link(source_display, target_display, is_dir)?;
             }
             Action::UpdateState {
                 source_display,
@@ -215,7 +214,7 @@ fn execute(plan: Vec<Action>, context: &mut Context) -> Result<(), Box<dyn Error
                 is_dir,
             } => {
                 msg.info(&format!("Updating state for: {} -> {}", source_display, target_display));
-                context.manager.state.add_managed_link(source_display, target_display, is_dir);
+                context.manager.state.add_managed_link(source_display, target_display, is_dir)?;
             }
             Action::NotifyConflict { target_display } => {
                 msg.error(&format!(
@@ -229,7 +228,6 @@ fn execute(plan: Vec<Action>, context: &mut Context) -> Result<(), Box<dyn Error
         }
     }
 
-    context.manager.state.save()?;
     msg.success("Repair complete.");
     Ok(())
 }

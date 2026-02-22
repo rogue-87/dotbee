@@ -2,53 +2,51 @@ pub mod config;
 pub mod state;
 pub mod symlink;
 
-use config::Config;
-use state::State;
+use config::ConfigManager;
+use state::StateManager;
 use std::error::Error;
-pub use symlink::*;
+use symlink::SymlinkManager;
 
 /// A part of the context singleton. Responsible for managing the following:
 /// - Symlinks
 /// - State file
 /// - Config file
 pub struct Manager {
-    pub symlink: Symlink,
-    pub state: State,
-    pub config: Config,
+    pub symlink: SymlinkManager,
+    pub state: StateManager,
+    pub config: ConfigManager,
 }
 
 impl Manager {
     pub fn new(path_to_config: Option<String>) -> Result<Self, Box<dyn Error>> {
-        let symlink = Symlink::new();
-        let mut state = State::load()?;
+        let mut state = StateManager::load()?;
 
-        // Determine effective config path
+        // Determine effective config path from explicit arg or stored dotfiles path
         let effective_config_path = match path_to_config.as_ref() {
             Some(p) => Some(p.clone()),
             None => state
-                .dotfiles_path
-                .as_ref()
+                .get_dotfiles_path()
                 .map(|p| p.join("dotsy.toml").to_string_lossy().to_string()),
         };
 
-        let config = Config::load(effective_config_path)?;
+        let config = ConfigManager::load(effective_config_path)?;
 
-        // Get the parent directory of the loaded config file (if any)
+        // Sync dotfiles path between config and state
         if let Some(new_dotfiles_path) = config
-            .path
-            .as_ref()
+            .get_config_path()
             .and_then(|p| p.parent())
-            // Only proceed if this path is DIFFERENT from the current state
-            .filter(|p| state.dotfiles_path.as_deref() != Some(p))
+            .filter(|p| state.get_dotfiles_path() != Some(p))
         {
-            state.dotfiles_path = Some(new_dotfiles_path.to_path_buf());
-            state.save()?;
-        } else if config.path.is_none() && state.dotfiles_path.is_some() {
-            // If no config path was loaded but state has one, it means the state is stale.
-            state.dotfiles_path = None;
-            state.save()?;
+            state.set_dotfiles_path(Some(new_dotfiles_path.to_path_buf()))?;
+        } else if config.get_config_path().is_none() && state.get_dotfiles_path().is_some() {
+            // Config no longer exists but state still references it - clear stale path
+            state.set_dotfiles_path(None)?;
         }
 
-        Ok(Self { symlink, state, config })
+        Ok(Self {
+            symlink: SymlinkManager::new(),
+            state,
+            config,
+        })
     }
 }

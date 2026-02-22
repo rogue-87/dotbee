@@ -7,7 +7,12 @@ use std::path::{Path, PathBuf};
 const DEFAULT_CONFIG: &str = include_str!("../context/manager/config/dotsy.toml");
 
 pub fn run(context: &mut Context) -> Result<(), Box<dyn Error>> {
-    let path_string = context.manager.config.path.clone().unwrap_or(PathBuf::from("dotsy.toml"));
+    let path_string = context
+        .manager
+        .config
+        .get_config_path()
+        .map(|p| p.to_path_buf())
+        .unwrap_or(PathBuf::from("dotsy.toml"));
     let config_path = Path::new(&path_string);
     let message = &context.message;
 
@@ -31,8 +36,7 @@ pub fn run(context: &mut Context) -> Result<(), Box<dyn Error>> {
         .ok()
         .and_then(|abs_config_path| abs_config_path.parent().map(|dotfiles_path| dotfiles_path.to_path_buf()))
     {
-        context.manager.state.dotfiles_path = Some(parent);
-        context.manager.state.save()?;
+        context.manager.state.set_dotfiles_path(Some(parent))?;
     }
 
     message.success(&format!("Successfully initialized {}", path_string.to_string_lossy()));

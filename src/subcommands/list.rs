@@ -5,24 +5,24 @@ use std::error::Error;
 
 pub fn run(context: &Context) -> Result<(), Box<dyn Error>> {
     // List global symlinks
-    if let Some(global) = &context.manager.config.global {
+    if let Some(global_links) = context.manager.config.get_global_links() {
         println!("{}", "global".yellow().bold());
-        show_links(&global.links);
+        show_links(global_links);
     }
 
-    // List profiles symlinks and hightlight the active profile (if present)
-    let active_profile = context.manager.state.active_profile.as_ref();
-    if let Some(profiles) = &context.manager.config.profiles {
-        for (name, profile) in profiles {
-            let is_active = active_profile == Some(name);
+    // List profiles and highlight the active one
+    let active_profile = context.manager.state.get_active_profile();
+    for name in context.manager.config.list_profiles() {
+        let is_active = active_profile == Some(name);
 
-            let title = if is_active {
-                format!("{} (active)", name).green().bold()
-            } else {
-                name.bold()
-            };
+        let title = if is_active {
+            format!("{} (active)", name).green().bold()
+        } else {
+            name.bold()
+        };
 
-            println!("{}", title);
+        println!("{}", title);
+        if let Ok(profile) = context.manager.config.get_profile(name) {
             show_links(&profile.links);
         }
     }

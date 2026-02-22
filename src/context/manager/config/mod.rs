@@ -11,15 +11,12 @@ use std::path::{Path, PathBuf};
 
 #[derive(Debug, Deserialize, Default, Clone)]
 #[serde(default)]
-pub struct Config {
-    /// This is NOT part of `dotsy.toml` file
-    /// This is used to get the path of the config file
+struct Config {
     #[serde(skip)]
-    pub path: Option<PathBuf>,
-    // config
-    pub settings: Settings,
-    pub global: Option<Global>,
-    pub profiles: Option<IndexMap<String, Profile>>,
+    path: Option<PathBuf>,
+    settings: Settings,
+    global: Option<Global>,
+    profiles: Option<IndexMap<String, Profile>>,
 }
 
 #[derive(Debug, Deserialize, Default, Clone)]
@@ -41,20 +38,54 @@ pub struct Profile {
     pub links: IndexMap<String, String>,
 }
 
-impl Config {
-    pub fn load(path: Option<String>) -> Result<Config, Box<dyn Error>> {
+pub struct ConfigManager {
+    config: Config,
+}
+
+impl ConfigManager {
+    pub fn load(path: Option<String>) -> Result<Self, Box<dyn Error>> {
         let path_str = path.unwrap_or_else(|| "dotsy.toml".to_string());
         let config_path = Path::new(&path_str);
 
-        // If no config, return a default empty config.
         if !config_path.exists() {
-            return Ok(Config::default());
+            return Ok(Self { config: Config::default() });
         }
 
         let content = fs::read_to_string(config_path)?;
         let mut config: Config = toml::from_str(&content)?;
         config.path = Some(fs::canonicalize(config_path)?);
 
-        Ok(config)
+        Ok(Self { config })
+    }
+
+    pub fn get_profile(&self, name: &str) -> Result<&Profile, Box<dyn Error>> {
+        let profiles = self.config.profiles.as_ref().ok_or("No profiles defined in configuration.")?;
+        profiles
+            .get(name)
+            .ok_or_else(|| format!("Profile '{}' not found in configuration.", name).into())
+    }
+
+    pub fn list_profiles(&self) -> Vec<&str> {
+        self.config
+            .profiles
+            .as_ref()
+            .map(|p| p.keys().map(|k| k.as_str()).collect())
+            .unwrap_or_default()
+    }
+
+    pub fn has_profiles(&self) -> bool {
+        self.config.profiles.as_ref().map(|p| !p.is_empty()).unwrap_or(false)
+    }
+
+    pub fn get_global_links(&self) -> Option<&IndexMap<String, String>> {
+        self.config.global.as_ref().map(|g| &g.links)
+    }
+
+    pub fn get_settings(&self) -> &Settings {
+        &self.config.settings
+    }
+
+    pub fn get_config_path(&self) -> Option<&Path> {
+        self.config.path.as_deref()
     }
 }
