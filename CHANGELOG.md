@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-02-22
+
+### Added
+- Unit test coverage across all three manager structs (26 tests total).
+  - `ConfigManager`: loading, profile lookup, global links, settings, config path.
+  - `StateManager`: active profile, dotfiles path, managed links, clear, `ManagedLink` equality.
+  - `SymlinkManager`: check, create, force-create, remove-existing.
+
+### Changed
+- **Major Internal Refactor:** Introduced dedicated `ConfigManager`, `StateManager`, and
+  `SymlinkManager` structs. Each manager owns its data privately and exposes a clean API,
+  replacing the previous pattern of `Manager` directly owning raw `Config`, `State`, and
+  `Symlink` structs.
+- `StateManager` now auto-saves state to disk on every mutation.
+- `SymlinkManager` is now a plain struct rather than a trait implemented by a `Symlink` struct.
+- Config path tracking moved out of the `Config` data struct and into `ConfigManager` as a
+  separate field, keeping `Config` as a pure mirror of the TOML structure.
+- `ConflictAction::Ask` variant removed; conflict resolution is now cleaner and less error-prone.
+- `repair` subcommand logic refactored to use functional chaining, removing deeply nested
+  conditionals.
+- State is now fully cleared on `purge` and on load failures.
+
 ## [0.2.1] - 2026-02-07
 
 ### Changed
