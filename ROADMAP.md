@@ -10,8 +10,8 @@ _Goal: Solidify the core specification and ensure reliability._
 - [x] **LSP Support:** Complete the `schema/dotsy.json` JSON schema to provide completions and validation via Taplo.
 - [x] **Shell Completions:** Provide completions for `bash`, `zsh` and `fish`.
 - [x] **Documentation:** Finalize the `README.md` and establish a `CHANGELOG.md`.
-- [ ] **Wiki:** Write a wiki that explains everything about dotsy.
-- [ ] **Usage Examples:** Write usage examples and troubleshooting tips.
+- [x] **Wiki:** Write a wiki that explains everything about dotsy.
+- [x] **Usage Examples:** Write usage examples and troubleshooting tips.
 - [x] **Base Directory Resolution:** Fix CWD-dependency by resolving relative paths from the config file's location.
 - [ ] **Code Documentation:** Add inline comments and docstrings to the codebase.
 - [ ] **Core Testing:** Implement a comprehensive test suite for symlink management (creation, purging, repair) and edge cases.
