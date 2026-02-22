@@ -89,3 +89,170 @@ impl ConfigManager {
         self.config.path.as_deref()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use tempfile::tempdir;
+
+    fn write_config(dir: &std::path::Path, content: &str) -> PathBuf {
+        let path = dir.join("dotsy.toml");
+        fs::write(&path, content).unwrap();
+        path
+    }
+
+    #[test]
+    fn test_load_missing_file_returns_default() {
+        let result = ConfigManager::load(Some("/nonexistent/dotsy.toml".to_string()));
+        assert!(result.is_ok());
+        let cm = result.unwrap();
+        assert!(!cm.has_profiles());
+        assert!(cm.list_profiles().is_empty());
+        assert!(cm.get_global_links().is_none());
+        assert!(cm.get_config_path().is_none());
+    }
+
+    #[test]
+    fn test_load_valid_config() {
+        let dir = tempdir().unwrap();
+        let toml = r#"
+[settings]
+icon_style = "text"
+
+[global.links]
+"~/.bashrc" = "bash/bashrc"
+
+[profiles.desktop.links]
+"~/.config/i3/config" = "linux/i3_config"
+
+[profiles.server.links]
+"~/.tmux.conf" = "server/tmux.conf"
+"#;
+        let path = write_config(dir.path(), toml);
+        let cm = ConfigManager::load(Some(path.to_str().unwrap().to_string())).unwrap();
+
+        assert!(cm.has_profiles());
+        assert_eq!(cm.list_profiles().len(), 2);
+        assert!(cm.list_profiles().contains(&"desktop"));
+        assert!(cm.list_profiles().contains(&"server"));
+    }
+
+    #[test]
+    fn test_get_profile_found() {
+        let dir = tempdir().unwrap();
+        let toml = r#"
+[profiles.laptop.links]
+"~/.vimrc" = "vim/vimrc"
+"#;
+        let path = write_config(dir.path(), toml);
+        let cm = ConfigManager::load(Some(path.to_str().unwrap().to_string())).unwrap();
+
+        let profile = cm.get_profile("laptop");
+        assert!(profile.is_ok());
+        assert!(profile.unwrap().links.contains_key("~/.vimrc"));
+    }
+
+    #[test]
+    fn test_get_profile_not_found() {
+        let dir = tempdir().unwrap();
+        let toml = r#"
+[profiles.desktop.links]
+"~/.vimrc" = "vim/vimrc"
+"#;
+        let path = write_config(dir.path(), toml);
+        let cm = ConfigManager::load(Some(path.to_str().unwrap().to_string())).unwrap();
+
+        let result = cm.get_profile("nonexistent");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("not found"));
+    }
+
+    #[test]
+    fn test_get_profile_no_profiles_section() {
+        let dir = tempdir().unwrap();
+        let toml = r#"
+[settings]
+icon_style = "text"
+"#;
+        let path = write_config(dir.path(), toml);
+        let cm = ConfigManager::load(Some(path.to_str().unwrap().to_string())).unwrap();
+
+        let result = cm.get_profile("anything");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("No profiles"));
+    }
+
+    #[test]
+    fn test_get_global_links() {
+        let dir = tempdir().unwrap();
+        let toml = r#"
+[global.links]
+"~/.bashrc" = "bash/bashrc"
+"~/.gitconfig" = "git/gitconfig"
+"#;
+        let path = write_config(dir.path(), toml);
+        let cm = ConfigManager::load(Some(path.to_str().unwrap().to_string())).unwrap();
+
+        let links = cm.get_global_links();
+        assert!(links.is_some());
+        let links = links.unwrap();
+        assert_eq!(links.len(), 2);
+        assert_eq!(links.get("~/.bashrc").unwrap(), "bash/bashrc");
+    }
+
+    #[test]
+    fn test_get_global_links_absent() {
+        let dir = tempdir().unwrap();
+        let toml = r#"
+[profiles.desktop.links]
+"~/.vimrc" = "vim/vimrc"
+"#;
+        let path = write_config(dir.path(), toml);
+        let cm = ConfigManager::load(Some(path.to_str().unwrap().to_string())).unwrap();
+
+        assert!(cm.get_global_links().is_none());
+    }
+
+    #[test]
+    fn test_get_settings_defaults() {
+        let dir = tempdir().unwrap();
+        let toml = "";
+        let path = write_config(dir.path(), toml);
+        let cm = ConfigManager::load(Some(path.to_str().unwrap().to_string())).unwrap();
+
+        let settings = cm.get_settings();
+        assert!(settings.on_conflict.is_none());
+        assert!(settings.icon_style.is_none());
+        assert!(settings.auto_detect_profile.is_none());
+    }
+
+    #[test]
+    fn test_get_config_path_is_set_when_file_exists() {
+        let dir = tempdir().unwrap();
+        let path = write_config(dir.path(), "");
+        let cm = ConfigManager::load(Some(path.to_str().unwrap().to_string())).unwrap();
+
+        assert!(cm.get_config_path().is_some());
+    }
+
+    #[test]
+    fn test_list_profiles_order_preserved() {
+        let dir = tempdir().unwrap();
+        let toml = r#"
+[profiles.alpha.links]
+"~/.a" = "a"
+
+[profiles.beta.links]
+"~/.b" = "b"
+
+[profiles.gamma.links]
+"~/.c" = "c"
+"#;
+        let path = write_config(dir.path(), toml);
+        let cm = ConfigManager::load(Some(path.to_str().unwrap().to_string())).unwrap();
+
+        let profiles = cm.list_profiles();
+        assert_eq!(profiles, vec!["alpha", "beta", "gamma"]);
+    }
+}
