@@ -1,89 +1,42 @@
+# This is the main entry point for the GitLab CI/CD pipeline.
+# It defines global configuration and includes modularized pipeline components.
+
+# Per GitLab CI documentation, `include` should be one of the first keys in the file.
+# This may also help local linters like `glab` correctly parse the configuration.
+include:
+  - local: ".gitlab-ci/validation.yml"
+  - local: ".gitlab-ci/build.yml"
+  - local: ".gitlab-ci/release.yml"
+
 stages:
+  - lint
+  - test
   - build
   - release
 
+# Global variables are available to all jobs.
 variables:
   CARGO_HOME: $CI_PROJECT_DIR/.cargo
   BINARY_NAME: dotsy
+  # Tell cross to use the docker daemon from the dind service.
+  DOCKER_HOST: tcp://docker:2375
 
-.build_template:
-  stage: build
+# Global workflow rules define when pipelines run.
+workflow:
   rules:
     - if: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
-build-linux:
-  extends: .build_template
-  image: rust:1.92.0
-  parallel:
-    matrix:
-      - TARGET: x86_64-unknown-linux-musl
-        PLATFORM: linux-x64-musl
-      - TARGET: aarch64-unknown-linux-musl
-        PLATFORM: linux-arm64-musl
+# Templates defined here are available to all included files.
+.cargo_cache:
   cache:
-    key: "${PLATFORM}"
+    # Each job gets its own cache. For the matrix job, the key will be like
+    # `build:x86_64-unknown-linux-musl`, which is correct as each target needs a separate cache.
+    key: "${CI_JOB_NAME}"
     paths:
       - .cargo/bin/
       - .cargo/registry/index/
       - .cargo/registry/cache/
       - .cargo/git/db/
       - target/
-  before_script:
-    - apt-get update && apt-get install -y xz-utils zip
-    - if echo "$PLATFORM" | grep -q "arm64"; then apt-get install -y gcc-aarch64-linux-gnu; fi
-    - if [ "$PLATFORM" = "linux-x64-musl" ]; then apt-get install -y musl-tools; fi
-    - rustup target add $TARGET
-  script:
-    - |
-      if echo "$PLATFORM" | grep -q "arm64"; then
-        export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=aarch64-linux-gnu-gcc
-      fi
-      cargo build --release --target $TARGET
-      PKG_NAME="${BINARY_NAME}-${CI_COMMIT_TAG}-${PLATFORM}"
-      BIN_FILE="target/$TARGET/release/${BINARY_NAME}"
-
-      tar -czf ${PKG_NAME}.tar.gz -C "$(dirname "${BIN_FILE}")" "${BINARY_NAME}"
-  artifacts:
-    paths:
-      - ${BINARY_NAME}-${CI_COMMIT_TAG}-${PLATFORM}.tar.gz
-
-
-upload:
-  stage: release
-  image: curlimages/curl:latest
-  needs:
-    - job: build-linux
-  rules:
-    - if: $CI_COMMIT_TAG
-  script:
-    - |
-      for FILE in ${BINARY_NAME}-${CI_COMMIT_TAG}-*.tar.gz; do
-        echo "Uploading $FILE..."
-        curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-             --upload-file "$FILE" \
-             "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${BINARY_NAME}/${CI_COMMIT_TAG}/${FILE}"
-      done
-
-release:
-  stage: release
-  image: registry.gitlab.com/gitlab-org/release-cli:latest
-  needs:
-    - job: upload
-      artifacts: false
-  rules:
-    - if: $CI_COMMIT_TAG
-  script:
-    - |
-      ASSETS_FLAGS=""
-      for PLATFORM in linux-x64-musl linux-arm64-musl; do
-        PREFIX="${BINARY_NAME}-${CI_COMMIT_TAG}-${PLATFORM}"
-        for EXT in ".tar.gz"; do
-          FILENAME="${PREFIX}${EXT}"
-          URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${BINARY_NAME}/${CI_COMMIT_TAG}/${FILENAME}"
-          ASSETS_FLAGS="${ASSETS_FLAGS} --assets-link {\"name\":\"${FILENAME}\",\"url\":\"${URL}\"}"
-        done
-      done
-      
-      release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
-        --description "Release of version $CI_COMMIT_TAG" \
-        $ASSETS_FLAGS
