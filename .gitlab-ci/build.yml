@@ -16,10 +16,6 @@ build:
         PLATFORM: linux-arm64-musl
       - TARGET: aarch64-linux-android
         PLATFORM: android-arm64
-  before_script:
-    - apt-get update && apt-get install -y docker-cli
-    - cargo install cross-util
-    - cross-util install
   script:
     - cross build --release --target $TARGET
     - PKG_NAME="${BINARY_NAME}-${CI_COMMIT_TAG}-${PLATFORM}"

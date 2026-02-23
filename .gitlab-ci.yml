@@ -18,8 +18,12 @@ stages:
 variables:
   CARGO_HOME: $CI_PROJECT_DIR/.cargo
   BINARY_NAME: dotbee
-  # Tell cross to use the docker daemon from the dind service.
-  DOCKER_HOST: tcp://docker:2375
+  # the host where the docker instance is running
+  DOCKER_HOST: tcp://docker:2375/
+  # use for much faster builds
+  DOCKER_DRIVER: overlay2
+  # ensure cross knows it's running remotely
+  CROSS_REMOTE: 1
 
 # Global workflow rules define when pipelines run.
 workflow:
