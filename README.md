@@ -31,17 +31,15 @@ mise use gitlab:rogue87/dotbee
 
 ### From Source
 
-#### From [crates.io](https://crates.io/crates/dotbee)
+1. From [crates.io](https://crates.io/crates/dotbee):
+   ```bash
+   cargo install dotbee
+   ```
 
-```bash
-cargo install dotbee
-```
-
-#### Directly From Repository
-
-```bash
-cargo install --git https://gitlab.com/rogue87/dotbee
-```
+2. Directly From Repository:
+   ```bash
+   cargo install --git https://gitlab.com/rogue87/dotbee
+   ```
 
 ## Quick Start
 
