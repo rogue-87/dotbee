@@ -30,6 +30,14 @@ mise use gitlab:rogue87/dotbee
 
 ### From Source
 
+#### From [crates.io](https://crates.io/crates/dotbee)
+
+```bash
+cargo install dotbee
+```
+
+#### Directly From Repository
+
 ```bash
 cargo install --git https://gitlab.com/rogue87/dotbee
 ```
@@ -88,8 +96,8 @@ Supported shells: `bash`, `zsh`, `fish`, `elvish`.
 
 ### Permanent Installation
 
-| Shell      | Command                                                                    |
-| :--------- | :------------------------------------------------------------------------- |
+| Shell      | Command                                                                      |
+| :--------- | :--------------------------------------------------------------------------- |
 | **Bash**   | `dotbee completion bash > ~/.local/share/bash-completion/completions/dotbee` |
 | **Zsh**    | `dotbee completion zsh > ~/.zfunc/_dotbee`                                   |
 | **Fish**   | `dotbee completion fish > ~/.config/fish/completions/dotbee.fish`            |
