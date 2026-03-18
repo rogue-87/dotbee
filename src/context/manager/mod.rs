@@ -44,7 +44,7 @@ impl Manager {
         }
 
         Ok(Self {
-            symlink: SymlinkManager::new(),
+            symlink: SymlinkManager,
             state,
             config,
         })

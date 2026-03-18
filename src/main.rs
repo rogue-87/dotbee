@@ -1,13 +1,7 @@
-// my shitty helper code
-mod context;
-mod utils;
-// my shitty app code
-mod cli;
-mod subcommands;
-
 use clap::Parser;
-use cli::{Cli, SubCommand};
-use context::Context;
+use dotbee::cli::{Cli, SubCommand};
+use dotbee::context::Context;
+use dotbee::subcommands;
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {

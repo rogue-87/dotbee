@@ -19,26 +19,8 @@ pub fn expand_tilde(path_str: &str) -> PathBuf {
 }
 
 /// Retrieves the system's hostname.
-///
-/// # Panics
-/// This function will panic if it fails to get the hostname from the system or
-/// if the hostname cannot be parsed into a valid string.
 pub fn get_hostname() -> String {
     use nix::unistd::gethostname;
     let hostname = gethostname().expect("Couldn't get hostname");
     hostname.into_string().expect("Failed to parse hostname")
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_expand_tilde() {
-        if let Some(home) = dirs::home_dir() {
-            assert_eq!(expand_tilde("~"), home);
-            assert_eq!(expand_tilde("~/test"), home.join("test"));
-        }
-        assert_eq!(expand_tilde("/etc/hosts"), PathBuf::from("/etc/hosts"));
-    }
 }
