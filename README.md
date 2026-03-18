@@ -21,7 +21,7 @@
 
 For more details, see the [GitLab Wiki](https://gitlab.com/rogue87/dotbee/-/wikis).
 
-Check the [Roadmap](https://gitlab.com/rogue87/dotbee/-/milestones) to see current progress of dotbee's development.
+Check the [Roadmap](ROADMAP.md) to see current progress of dotbee's development.
 
 ## Installation
 
@@ -34,6 +34,7 @@ mise use gitlab:rogue87/dotbee
 ### From Source
 
 1. From [crates.io](https://crates.io/crates/dotbee):
+
    ```bash
    cargo install dotbee
    ```
@@ -46,13 +47,16 @@ mise use gitlab:rogue87/dotbee
 ## Quick Start
 
 1. **Initialize:**
+
    ```bash
    dotbee init
    ```
+
    This creates a default `dotbee.toml` in your current directory.
 
 2. **Configure:**
    Edit `dotbee.toml` to define your links.
+
    ```toml
    [global.links]
    "~/.gitconfig" = "git/gitconfig"
