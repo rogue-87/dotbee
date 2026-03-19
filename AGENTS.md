@@ -15,32 +15,32 @@ intentionally minimal — no encryption, no templating, no package management. J
 
 ## Build, Run & Test Commands
 
+We use **cross-rs** for all target-specific operations (build, test, clippy) to ensure environment
+parity between local development and CI.
+
 ```bash
 # Build (debug)
-cargo build
+cross build --target x86_64-unknown-linux-musl
 
 # Build (release)
-cargo build --release
-
-# Run a subcommand
-cargo run -- <subcommand>          # e.g. cargo run -- list
+cross build --release --target x86_64-unknown-linux-musl
+# or via mise:
+mise run build
 
 # Run all tests
-cargo test
+cross test --target x86_64-unknown-linux-musl --all
+# or via mise:
+mise run test
 
-# Run a single test by name (substring match)
-cargo test <test_name>             # e.g. cargo test test_load_valid_config
+# Lint (clippy)
+cross clippy --target x86_64-unknown-linux-musl -- -D warnings
+# or via mise:
+mise run lint
 
-# Run all tests in a specific module
-cargo test context::manager::config
-
-# Lint (cargo check)
-mise run lint                      # runs: cargo check --all
-
-# Format Rust + TOML
+# Format Rust + TOML (local toolchain)
 mise run format                    # alias: mise run fmt
 mise run format:rust               # runs: cargo fmt --all
-mise run format:toml               # runs: taplo format --check --diff
+mise run format:toml               # runs: taplo format
 
 # Bump version (major | minor | bugfix | literal e.g. 1.2.3)
 mise run bump-version <increment>
