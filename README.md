@@ -40,6 +40,7 @@ mise use gitlab:rogue87/dotbee
    ```
 
 2. Directly From Repository:
+
    ```bash
    cargo install --git https://gitlab.com/rogue87/dotbee
    ```
@@ -152,3 +153,9 @@ To avoid accidental data loss on your host system during development, use the pr
 ```bash
 mise run try-dotbee --profile dev
 ```
+
+### Acknowledgments
+
+- [Dotsy](https://github.com/NICHTJ3/Dotsy): My project was initially named dotsy until I discovered there's another project that does the same stuff as mine on crates.io lol xD.
+
+- [Stow](https://www.gnu.org/software/stow/): While I kinda hated how stow works, I have to admit it's very plain and simple dotfiles management tool which is something I really appreciate. I don't like that fact that I have to organize my files in a specific way and run some scripts to make things work. It was also kind difficult to undo things with stow or fix up any broken symlinks.
