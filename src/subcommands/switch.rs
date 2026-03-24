@@ -99,7 +99,7 @@ fn generate_plan(target_profile: &str, context: &Context) -> Result<Vec<Action>,
     }
 
     // 2. Phase A: Identify Ghost Links (links in state but not in desired config)
-    for link in context.manager.state.get_managed_links() {
+    for link in context.manager.state.get_links() {
         if !desired_links.contains_key(&link.target) {
             let target_path = expand_tilde(&link.target);
             let source_path = dotfiles_root.join(&link.source);
@@ -227,7 +227,7 @@ fn execute(plan: Vec<Action>, target_profile: &str, context: &mut Context) -> Re
             } => {
                 fs::remove_file(&target_path)?;
                 msg.delete(&format!("Removed ghost link: {}", target_display));
-                context.manager.state.remove_managed_links(|l| l.target == target_display)?;
+                context.manager.state.remove_links(|l| l.target == target_display)?;
             }
             Action::CreateNewLink {
                 source_display,
@@ -238,7 +238,7 @@ fn execute(plan: Vec<Action>, target_profile: &str, context: &mut Context) -> Re
             } => {
                 context.manager.symlink.create(&source_path, &target_path)?;
                 msg.link(&format!("{} -> {}", source_display, target_display));
-                context.manager.state.add_managed_link(source_display, target_display, is_dir)?;
+                context.manager.state.add_link(source_display, target_display, is_dir)?;
             }
             Action::UpdateState {
                 source_display,
@@ -246,7 +246,7 @@ fn execute(plan: Vec<Action>, target_profile: &str, context: &mut Context) -> Re
                 is_dir,
             } => {
                 msg.success(&format!("{} -> {} (already linked)", source_display, target_display));
-                context.manager.state.add_managed_link(source_display, target_display, is_dir)?;
+                context.manager.state.add_link(source_display, target_display, is_dir)?;
             }
             Action::Conflict {
                 source_display,
@@ -267,7 +267,7 @@ fn execute(plan: Vec<Action>, target_profile: &str, context: &mut Context) -> Re
 
                 if action == ConflictAction::Overwrite || action == ConflictAction::Adopt {
                     let is_dir = source_path.is_dir();
-                    context.manager.state.add_managed_link(source_display, target_display, is_dir)?;
+                    context.manager.state.add_link(source_display, target_display, is_dir)?;
                 }
             }
             Action::SourceMissing { source_display, .. } => {

@@ -83,7 +83,7 @@ fn generate_plan(context: &Context) -> Result<Vec<Action>, Box<dyn Error>> {
             match status {
                 SymlinkStatus::AlreadyLinked => {
                     // Check if it's in state. If not, we should update state.
-                    let in_state = context.manager.state.get_managed_links().iter().any(|l| l.target == *target_str);
+                    let in_state = context.manager.state.get_links().iter().any(|l| l.target == *target_str);
                     if !in_state {
                         plan.push(Action::UpdateState {
                             source_display: source_str.clone(),
@@ -192,7 +192,7 @@ fn execute(plan: Vec<Action>, context: &mut Context) -> Result<(), Box<dyn Error
             } => {
                 msg.success(&format!("Linking {} -> {}", source_display, target_display));
                 context.manager.symlink.create(&source_path, &target_path)?;
-                context.manager.state.add_managed_link(source_display, target_display, is_dir)?;
+                context.manager.state.add_link(source_display, target_display, is_dir)?;
             }
             Action::Relink {
                 source_display,
@@ -206,7 +206,7 @@ fn execute(plan: Vec<Action>, context: &mut Context) -> Result<(), Box<dyn Error
                     std::fs::remove_file(&target_path)?;
                 }
                 context.manager.symlink.create(&source_path, &target_path)?;
-                context.manager.state.add_managed_link(source_display, target_display, is_dir)?;
+                context.manager.state.add_link(source_display, target_display, is_dir)?;
             }
             Action::UpdateState {
                 source_display,
@@ -214,7 +214,7 @@ fn execute(plan: Vec<Action>, context: &mut Context) -> Result<(), Box<dyn Error
                 is_dir,
             } => {
                 msg.info(&format!("Updating state for: {} -> {}", source_display, target_display));
-                context.manager.state.add_managed_link(source_display, target_display, is_dir)?;
+                context.manager.state.add_link(source_display, target_display, is_dir)?;
             }
             Action::NotifyConflict { target_display } => {
                 msg.error(&format!(

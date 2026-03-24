@@ -39,7 +39,7 @@ pub fn run(context: &mut Context) -> Result<(), Box<dyn Error>> {
 fn generate_plan(context: &Context) -> Vec<Action> {
     let mut plan: Vec<Action> = vec![];
 
-    for link in context.manager.state.get_managed_links() {
+    for link in context.manager.state.get_links() {
         let target_path = expand_tilde(&link.target);
 
         // Check if the path exists or is a broken symlink

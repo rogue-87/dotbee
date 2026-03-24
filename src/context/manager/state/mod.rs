@@ -5,7 +5,7 @@ use std::io;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
-pub struct ManagedLink {
+pub struct Link {
     pub source: String,
     pub target: String,
     pub is_dir: bool,
@@ -15,7 +15,7 @@ pub struct ManagedLink {
 struct State {
     active_profile: Option<String>,
     dotfiles_path: Option<PathBuf>,
-    links: Vec<ManagedLink>,
+    links: Vec<Link>,
 }
 
 impl State {
@@ -77,12 +77,12 @@ impl StateManager {
         Ok(())
     }
 
-    pub fn get_managed_links(&self) -> &[ManagedLink] {
+    pub fn get_links(&self) -> &[Link] {
         &self.state.links
     }
 
-    pub fn add_managed_link(&mut self, source: String, target: String, is_dir: bool) -> Result<(), Box<dyn Error>> {
-        let link = ManagedLink { source, target, is_dir };
+    pub fn add_link(&mut self, source: String, target: String, is_dir: bool) -> Result<(), Box<dyn Error>> {
+        let link = Link { source, target, is_dir };
         if !self.state.links.contains(&link) {
             self.state.links.push(link);
         }
@@ -90,9 +90,9 @@ impl StateManager {
         Ok(())
     }
 
-    pub fn remove_managed_links<F>(&mut self, predicate: F) -> Result<usize, Box<dyn Error>>
+    pub fn remove_links<F>(&mut self, predicate: F) -> Result<usize, Box<dyn Error>>
     where
-        F: Fn(&ManagedLink) -> bool,
+        F: Fn(&Link) -> bool,
     {
         let before = self.state.links.len();
         self.state.links.retain(|l| !predicate(l));

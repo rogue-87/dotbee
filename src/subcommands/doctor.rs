@@ -59,9 +59,9 @@ pub fn run(context: &Context) -> Result<(), Box<dyn Error>> {
 
 fn check_ghost_links(config_links: &IndexMap<String, String>, context: &Context) -> Result<(), Box<dyn Error>> {
     let mut ghosts = Vec::new();
-    for managed in context.manager.state.get_managed_links() {
-        if !config_links.contains_key(&managed.target) {
-            ghosts.push(managed);
+    for link in context.manager.state.get_links() {
+        if !config_links.contains_key(&link.target) {
+            ghosts.push(link);
         }
     }
 
