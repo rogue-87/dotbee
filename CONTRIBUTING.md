@@ -44,21 +44,15 @@ cargo run -- <command>
 ### Safe Development (Recommended)
 
 > [!WARNING]
-> Since Dotbee creates and removes symlinks, **I strongly recommend running it inside a container** during development to avoid accidentally modifying your personal dotfiles.
+> Since Dotbee creates/removes symlinks, files or whatever, **I strongly recommend running it inside a container** during development to avoid accidentally modifying your personal dotfiles.
 
 I've provided `mise` tasks to simplify this process:
 
-1. **Build the development container:**
-
-   ```bash
-   mise run build-container
-   ```
-
-2. **Run Dotbee inside the container:**
+1. **Run Dotbee inside the container:**
    This command compiles your current code, mounts the binary into the container, and drops you into a shell where you can safely run `dotbee`.
 
    ```bash
-   mise run run-container
+   mise run try-dotbee
    ```
 
    To test with a release build:
@@ -71,7 +65,7 @@ I've provided `mise` tasks to simplify this process:
 
 ### Formatting & Linting
 
-We adhere to standard Rust coding conventions.
+Please, adhere to standard Rust coding conventions.
 
 - **Formatting:** Ensure your code is formatted using `rustfmt`.
 
@@ -88,12 +82,6 @@ We adhere to standard Rust coding conventions.
 ### Testing
 
 Please ensure that you add tests for any new features or bug fixes.
-
-To run the GitLab CI pipeline locally (requires `glab cli`):
-
-```bash
-mise run validate-ci
-```
 
 ## Submitting Changes
 
@@ -144,7 +132,9 @@ While the LLM being able to quickly edit files is convenient, it's also kind of 
 
 I also suggest not copying and pasting but rather writing it line by line, word by word. This should help you discover errors and mistakes before they even happen.
 
-Personally, I find it very useful for things like writing small scripts like the ones I have inside of `.mise-tasks` and for doing annoying tasks like writing change-logs.
+~~Personally, I find it very useful for things like writing small scripts like the ones I have inside of `.mise-tasks` and for doing annoying tasks like writing change-logs.~~
+
+Yeah... I don't use that anymore lol
 
 ## License
 
