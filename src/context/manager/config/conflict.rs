@@ -6,9 +6,15 @@ use std::fmt::{Display, Formatter};
 #[derive(Debug, Clone, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum ConflictAction {
+    /// Quit dotbee. This will result in an incomplete operation.
     Abort,
+    /// Make the conflicting file part of the dotfiles(this will replace the current file that is
+    /// conflicting with it).
+    /// Its basically overwrite but the other way around.
     Adopt,
+    /// Delete the conflicting file to perform symlinking.
     Overwrite,
+    /// Ignore the current issue and move over to the next one.
     Skip,
 }
 
@@ -47,6 +53,8 @@ impl Display for ConflictAction {
 }
 
 impl ConflictAction {
+    /// In the occurance of a problem, the user will be given multiple choices
+    /// on how to handle the problem.
     pub fn prompt(kind: &str) -> Result<ConflictAction, Box<dyn Error>> {
         let selection = Select::new("Conflict")
             .description(format!("Conflict occurred of kind: {}.\nhow do you want to handle it?", kind).as_str())
