@@ -1,93 +1,254 @@
-# Changelog
+## [unreleased]
 
-All notable changes to this project will be documented in this file.
+### 🚀 Features
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+- [**breaking**] Remove message module from context and generalize it to just a logging utility
 
-## [0.4.0] - 2026-02-23
+### 💼 Other
 
-### Changed
-- **BREAKING CHANGE:** Renamed project from **Dotsy** to **Dotbee**.
-    - Command: `dotsy` -> `dotbee`
-    - Config file: `dotsy.toml` -> `dotbee.toml`
-    - Schema: `dotsy.json` -> `dotbee.json`
-    - State directory: `~/.local/state/dotsy` -> `~/.local/state/dotbee`
-    - Completions: Shell completion scripts must be regenerated using `dotbee completion <SHELL>`.
+- Remove trash crate and simply delete files for the sake of consistency
 
-### Migration
-If you are upgrading from `v0.3.0`, perform the following manual steps:
+### 🚜 Refactor
 
-1.  **Rename Config:** `mv dotsy.toml dotbee.toml`
-2.  **Move State (Optional):** `mv ~/.local/state/dotsy ~/.local/state/dotbee`
-3.  **Update Aliases:** Update your shell configuration to use `dotbee` instead of `dotsy`.
+- Move tests to a dedicated tests folder + add more unit tests
+- Rename managed_links -> links
+- Rename functions that has the word "managed" into ones that doesn't
+- Remove some unnecessary clones
 
+### 📚 Documentation
+
+- Update readme installation instructions
+- Add a link that points to the roadmap milestone
+- Update readme
+- Yet another update to the readme
+- Add some badges and slight changes to readme
+- Bring back roadmap file
+- Update AGENTS.md due to project changes
+- Redefine project scope
+- Add acknowledgements to README.md
+- Update CONTRIBUTING.md
+- Update ROADMAP.md
+- Add a prerequisite
+- Add some doc comments
+- Revise plan
+
+### ⚙️ Miscellaneous Tasks
+
+- Remove some files from termux example config
+- *(Cargo.toml)* Exclude some files
+- Bump dotsy version to 0.4.0
+- Remove some unused baggage
+- Add checks prior to build step
+- Ensure lint and test only run on commit tag
+- Remove example folder and simplify try-dotsy & Dockerfile
+- Use lefthook to setup git hooks and remove format and lint mise tasks
+- Remove rust-toolchain.toml related stuff in favour of cross
+- Merge all includes into .gitlab-ci.yml
+- Delete mise.toml and update lefthook config
+- Remove AGENTS.md
+- Update links
+- Delete Cross.toml
+- Bump rust version
+- Manage cargo packages
+- Delete unit tests for now
+- Remove tempfile dependency
+- Comment out pre-push git hook
+- Add a mise.toml file for project tools
+## [0.4.0] - 2026-02-24
+
+### 🐛 Bug Fixes
+
+- Add trailing forward slashes
+
+### 💼 Other
+
+- Add cargo to PATH in build.yml
+
+### 📚 Documentation
+
+- Rewrite AGENTS.md with accurate commands, architecture, and code style
+- Update ROADMAP.md
+- Add a link that points to the wiki
+- Update roadmap
+- Update changelogs
+
+### ⚙️ Miscellaneous Tasks
+
+- Modularize gitlab-ci script and add cross
+- Rename dotsy to dotbee
+- Fix gitlab ci script
+- Disable lint and test ci jobs
+- Comment out import for validation
+- Add Cross.toml and enable lint and test ci
+- Fix release-cli download and improve artifact handling
 ## [0.3.0] - 2026-02-22
 
-### Added
-- Unit test coverage across all three manager structs (26 tests total).
-  - `ConfigManager`: loading, profile lookup, global links, settings, config path.
-  - `StateManager`: active profile, dotfiles path, managed links, clear, `ManagedLink` equality.
-  - `SymlinkManager`: check, create, force-create, remove-existing.
+### 🚀 Features
 
-### Changed
-- **Major Internal Refactor:** Introduced dedicated `ConfigManager`, `StateManager`, and
-  `SymlinkManager` structs. Each manager owns its data privately and exposes a clean API,
-  replacing the previous pattern of `Manager` directly owning raw `Config`, `State`, and
-  `Symlink` structs.
-- `StateManager` now auto-saves state to disk on every mutation.
-- `SymlinkManager` is now a plain struct rather than a trait implemented by a `Symlink` struct.
-- Config path tracking moved out of the `Config` data struct and into `ConfigManager` as a
-  separate field, keeping `Config` as a pure mirror of the TOML structure.
-- `ConflictAction::Ask` variant removed; conflict resolution is now cleaner and less error-prone.
-- `repair` subcommand logic refactored to use functional chaining, removing deeply nested
-  conditionals.
-- State is now fully cleared on `purge` and on load failures.
+- Remove the profile inferring algorithm
+- Make the state file track managed symlinks
+- Make purge, repair and switch commands make use of the new state file managed links feature
+- Implement Plan/Execution pattern for switch, repair, purge
 
+### 🐛 Bug Fixes
+
+- Forgor to update get_hostname in switch lol
+- Ensure ghost links are removed when switching
+- Ensure state is fully cleared on purge and load failures
+
+### 💼 Other
+
+- Exit process when no profile was found when running `dotsy switch`
+
+### 🚜 Refactor
+
+- Try to untangle some nested ifs plus some unit tests
+- Use nix crate for getting hostname
+- Move unit tests to test folder
+- Break src/lib.rs into multiple workspaces
+- Untangle the nested ifs in doctor.rs
+- Change color for delete message to red
+- List subcommand
+- Chnage expect error message
+- Refactor expand_path and rename it to expand_tilde
+- Fix rust-analyzer warnings
+- Make functions that take either message or dry_run take context instead
+- Collapse some ifs and run cargo fmt
+- Remove unused function
+- Add some unit tests to utils.rs and rewrite some methods
+- Just a rename
+- Add some doc comments and rename a function
+- Implement manager
+- Remove Ask from ConflictAction enum
+- Untangle nested ifs in repair.rs
+- Small changes not worth having a commit message for :p
+- Introduce ConfigManager, StateManager, SymlinkManager structs
+- Move config path tracking from Config struct to ConfigManager
+
+### 📚 Documentation
+
+- Add new tasks to the roadmap
+- Change how gemini-cli works and add a note on using LLMs in GEMINI.md
+- Once again update contributing.md
+- Update GEMINI.md file
+- Update roadmap
+- Add more tasks to the roadmap
+
+### 🧪 Testing
+
+- Add unit tests for ConfigManager and StateManager
+
+### ⚙️ Miscellaneous Tasks
+
+- Make a script that bumps up version number
+- Update bump-verison script
+- Add tempfile crate
+- Delete tests
+- Run `cargo fmt` and `taplo format`
+- Switch from toml to json for the state file
+- Minify neovim config example to just a single file
+- Make files writable in the container
+- Discard workspaces
+- Rename GEMINI.md to AGENTS.md
+- Reflect project changes in AGENTS.md
+- Release v0.3.0
 ## [0.2.1] - 2026-02-07
 
-### Changed
-- `dotbee list` now displays the global profile configuration if one is defined.
-- Internal refactoring of `list` command to better handle global links.
+### 🚜 Refactor
 
+- Make `dotsy ls` show global profile
+
+### 📚 Documentation
+
+- Rename sw to s
+- Change roadmap
+
+### ⚙️ Miscellaneous Tasks
+
+- Delete example folder
+- Update Dockerfile to use fish instead of bash
 ## [0.2.0] - 2026-02-06
 
-### Added
-- New `completion` command to generate shell completion scripts (Bash, Zsh, Fish, Elvish, PowerShell).
-- Command aliases for improved developer experience:
-    - `ls` for `list`
-    - `s` for `switch`
-    - `dr` for `doctor`
-- `CONTRIBUTING.md` guide for new contributors.
+### 🚀 Features
 
-### Changed
-- **Major Refactor:** Modularized the codebase and separated application logic from the library.
-- **Context Pattern:** Introduced a `Context` module to manage shared state (config, paths, flags) across subcommands more efficiently.
-- **Messaging System:** Centralized output handling in a dedicated `message` module, improving consistency and allowing for easier styling updates.
-- **CI/CD:** Simplified release process by using `musl` as the default target for all Linux builds.
+- Provide aliases for commands
+- Implement completion command
 
+### 🚜 Refactor
+
+- Use message modules for printing instead of using icons modules directly
+- Separate app and lib code
+
+### ⚙️ Miscellaneous Tasks
+
+- Run cargo fmt
+- Fix dotsy container script to handle multiple targets
+- Add actual example config to use with the try-dotsy mise task
+- Update readme on how to setup shell completions
+- Update readme
+- Remove gnu target and use musl as the default
+- Bump dotsy version to 0.2.0
 ## [0.1.0] - 2026-01-31
 
-### Added
-- **CLI Commands:**
-    - `init`: Initialize Dotbee configuration.
-    - `list`: List available configuration profiles.
-    - `switch <config>`: Apply a specific configuration profile.
-    - `doctor`: Validate symlink status and configuration health.
-    - `purge`: Remove all active symlinks managed by Dotbee.
-    - `repair`: Detect and fix broken or missing symlinks.
-- **Features:**
-    - `auto_detect_profile` setting: Automatically select a profile based on the system's hostname when no profile is specified in `dotbee switch`.
-    - Dry-run mode (`--dry-run`) to preview filesystem changes.
-    - Custom config path support (`--config`).
-    - Configurable icon styles (Text, Emoji, NerdFont).
-    - Global and profile-specific symlink management.
-- **Infrastructure:**
-    - JSON Schema for `dotbee.toml` to provide LSP completions via Taplo.
-    - Project Roadmap (`ROADMAP.md`).
-    - GitLab CI configuration for automated multi-platform builds (x86_64, aarch64, musl) and releases.
-    - `mise` tasks for containerized development and CI testing.
+### 🚀 Features
 
-### Changed
-- Refactored `on_conflict` configuration setting to use a typed enum instead of a string.
-- Moved `ConflictAction` enum to a dedicated module in `src/config/conflict.rs`.
+- Implement `dotsy init`
+- Implement list command
+- Implement switch command
+- Create a state.rs file with some basic functions
+- Add --config and --dry-run flags
+- Add icon_style {TEXT, Emoji, NerdFont}
+- Implement profile auto detection based on hostname
+
+### 🐛 Bug Fixes
+
+- Fix icon label
+
+### 🚜 Refactor
+
+- Move todo!'s into each command instead of main.rs
+- Rethink the entire idea of approaching configs and groups
+- Make list command show only hosts
+- Rename Commands to Command
+- Move std::fmt::Formatter up to `use` instead
+- Update code to use demand instead of dialoguer
+- Change error message
+- Add descriptions for each conflict action
+- Change config to dotfiles
+- Change expect() to ?
+- Change icons
+- Rename example configs to something that makes more sense
+- Update icons again
+- Import std::error::Error instead of calling the full path to module
+- Simplify code in switch.rs
+- Get_destination_status function
+- Rename status to doctor
+- Rename profiles to configs(config_collection)
+- Shorten some lines of code
+- Get rid of PathBuf in ConflictingSymlink enum entry
+- Reimplement the configuration load function
+- Rename stuff to something more clear
+- Put hooks and icons in their own separate module
+- Make on_conflict use an enum instead of a string
+
+### 📚 Documentation
+
+- Change profiles to hosts
+- Add `dotsy status command`
+- Match with example files
+- Match some other stuff within the readme to example files once again
+
+### ⚙️ Miscellaneous Tasks
+
+- Add `colored` crate
+- Add a todo
+- Add `dialoguer` crate
+- Update example config
+- Add more info to Cargo.toml
+- Add trash crate
+- Fix typo
+- Add demand crate
+- Remove dialoguer crate
+- Add some crates
+- Run `cargo fmt`
+- Add indexmap crate
