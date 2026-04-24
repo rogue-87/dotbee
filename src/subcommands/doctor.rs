@@ -1,13 +1,12 @@
 use crate::context::Context;
 use crate::context::manager::symlink::SymlinkStatus;
-use crate::utils::expand_tilde;
+use crate::utils::common::expand_tilde;
+use crate::utils::message;
 use colored::Colorize;
 use indexmap::IndexMap;
 use std::error::Error;
 
 pub fn run(context: &Context) -> Result<(), Box<dyn Error>> {
-    let message = &context.message;
-
     println!("{}", "Dotbee Doctor Report\n".bold().underline());
 
     let mut config_links: IndexMap<String, String> = indexmap::IndexMap::new();
@@ -25,14 +24,14 @@ pub fn run(context: &Context) -> Result<(), Box<dyn Error>> {
     let active_profile = match context.manager.state.get_active_profile() {
         Some(p) => p.to_string(),
         None => {
-            message.info("No active profile detected.");
+            message::info("No active profile detected.");
             check_ghost_links(&config_links, context)?;
             return Ok(());
         }
     };
 
     if !context.manager.config.has_profiles() {
-        message.info("No profiles defined in dotbee.toml.");
+        message::info("No profiles defined in dotbee.toml.");
         check_ghost_links(&config_links, context)?;
         return Ok(());
     }
@@ -46,7 +45,7 @@ pub fn run(context: &Context) -> Result<(), Box<dyn Error>> {
             check_links(&profile.links, context)?
         }
         Err(_) => {
-            message.error(&format!("Status: Profile '{}' not found in config!", active_profile.red()));
+            message::error(&format!("Status: Profile '{}' not found in config!", active_profile.red()));
             check_ghost_links(&config_links, context)?;
             std::process::exit(1)
         }
@@ -68,9 +67,7 @@ fn check_ghost_links(config_links: &IndexMap<String, String>, context: &Context)
     if !ghosts.is_empty() {
         println!("{}", "Ghost Links (in state but not in current config):".bold().yellow());
         for ghost in ghosts {
-            context
-                .message
-                .warning(&format!("{} (formerly linked to {})", ghost.target, ghost.source));
+            message::warning(&format!("{} (formerly linked to {})", ghost.target, ghost.source));
         }
         println!("{}", "\nRun 'dotbee switch' to clean up ghost links.".italic().dimmed());
     }
@@ -85,7 +82,6 @@ fn check_links(links: &IndexMap<String, String>, context: &Context) -> Result<()
         .get_dotfiles_path()
         .map(|p| p.to_path_buf())
         .unwrap_or_else(|| std::env::current_dir().expect("Failed to get current directory"));
-    let message = &context.message;
 
     let mut sorted_links: Vec<_> = links.iter().collect();
     sorted_links.sort_by_key(|(k, _)| k.as_str());
@@ -95,7 +91,7 @@ fn check_links(links: &IndexMap<String, String>, context: &Context) -> Result<()
         let target_path = expand_tilde(target_str);
 
         if !source_path.exists() {
-            message.error(&format!("{} (Source missing: {})", source_str, source_path.display()));
+            message::error(&format!("{} (Source missing: {})", source_str, source_path.display()));
             continue;
         }
 
@@ -103,16 +99,16 @@ fn check_links(links: &IndexMap<String, String>, context: &Context) -> Result<()
 
         match status {
             SymlinkStatus::AlreadyLinked => {
-                message.success(&format!("{} -> {}", source_str, target_str));
+                message::success(&format!("{} -> {}", source_str, target_str));
             }
             SymlinkStatus::ConflictingSymlink => {
-                message.warning(&format!("{} (Symlink points to wrong target)", target_str));
+                message::warning(&format!("{} (Symlink points to wrong target)", target_str));
             }
             SymlinkStatus::ConflictingFileOrDir => {
-                message.error(&format!("{} (Conflict: File/Dir exists)", target_str));
+                message::error(&format!("{} (Conflict: File/Dir exists)", target_str));
             }
             SymlinkStatus::NonExistent => {
-                message.warning(&format!("{} (Not linked)", source_str));
+                message::warning(&format!("{} (Not linked)", source_str));
             }
         }
     }

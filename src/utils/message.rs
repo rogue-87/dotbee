@@ -1,0 +1,29 @@
+use colored::Colorize;
+
+pub fn success(msg: &str) {
+    println!("{}{}", "DONE  ".green(), msg);
+}
+
+pub fn error(msg: &str) {
+    eprintln!("{}{}", "ERR   ".red(), msg);
+}
+
+pub fn warning(msg: &str) {
+    println!("{}{}", "WARN  ".yellow(), msg);
+}
+
+pub fn info(msg: &str) {
+    println!("{}{}", "INFO  ".blue(), msg);
+}
+
+pub fn link(msg: &str) {
+    println!("{}{}", "LINK  ".cyan(), msg);
+}
+
+pub fn miss(msg: &str) {
+    println!("{}{}", "MISS  ".purple(), msg);
+}
+
+pub fn delete(msg: &str) {
+    println!("{}{}", "DEL   ".red(), msg);
+}

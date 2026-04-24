@@ -140,7 +140,6 @@ Dotbee uses TOML for configuration.
 ```toml
 [settings]
 on_conflict = "ask"
-icon_style = "nerdfont"
 
 [global.links]
 "~/.bashrc" = "bashrc"

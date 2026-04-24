@@ -1,6 +1,9 @@
-use crate::context::{
-    Context,
-    manager::{config::ConflictAction, symlink::SymlinkStatus},
+use crate::{
+    context::{
+        Context,
+        manager::{config::ConflictAction, symlink::SymlinkStatus},
+    },
+    utils::message,
 };
 use colored::Colorize;
 use indexmap::IndexMap;
@@ -10,7 +13,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::utils::{expand_tilde, get_hostname};
+use crate::utils::common::{expand_tilde, get_hostname};
 
 /// Actions for the switch command.
 /// These are possible list of actions that
@@ -54,7 +57,7 @@ pub fn run(profile_name: Option<String>, context: &mut Context) -> Result<(), Bo
             }
 
             let hostname = get_hostname();
-            context.message.info(&format!(
+            message::info(&format!(
                 "No profile specified. Auto-detecting profile from hostname: '{}'",
                 hostname
             ));
@@ -67,10 +70,9 @@ pub fn run(profile_name: Option<String>, context: &mut Context) -> Result<(), Bo
     let plan = generate_plan(&target_profile, context)?;
 
     // 2. DISPATCH
-    if context.dry_run {
-        execute_dry(&plan, &target_profile, context);
-    } else {
-        execute(plan, &target_profile, context)?;
+    match context.dry_run {
+        true => execute_dry(&plan, &target_profile),
+        false => execute(plan, &target_profile, context)?,
     }
 
     Ok(())
@@ -169,8 +171,7 @@ fn generate_plan(target_profile: &str, context: &Context) -> Result<Vec<Action>,
     Ok(plan)
 }
 
-fn execute_dry(plan: &[Action], target_profile: &str, context: &Context) {
-    let msg = &context.message;
+fn execute_dry(plan: &[Action], target_profile: &str) {
     println!(
         "{} {} {}",
         "Switching to profile".yellow(),
@@ -181,21 +182,21 @@ fn execute_dry(plan: &[Action], target_profile: &str, context: &Context) {
     for action in plan {
         match action {
             Action::RemoveGhostLink { target_display, .. } => {
-                msg.delete(&format!("Would remove ghost link (missing from config): {}", target_display));
+                message::delete(&format!("Would remove ghost link (missing from config): {}", target_display));
             }
             Action::CreateNewLink {
                 source_display,
                 target_display,
                 ..
             } => {
-                msg.link(&format!("Would link {} -> {}", source_display, target_display));
+                message::link(&format!("Would link {} -> {}", source_display, target_display));
             }
             Action::UpdateState {
                 source_display,
                 target_display,
                 ..
             } => {
-                msg.success(&format!("{} -> {} (already linked)", source_display, target_display));
+                message::success(&format!("{} -> {} (already linked)", source_display, target_display));
             }
             Action::Conflict {
                 source_display,
@@ -203,21 +204,20 @@ fn execute_dry(plan: &[Action], target_profile: &str, context: &Context) {
                 kind,
                 ..
             } => {
-                msg.warning(&format!(
+                message::warning(&format!(
                     "Conflict at {}: {} exists. Strategy will be applied.",
                     target_display, kind
                 ));
-                msg.info(&format!("  Source: {}", source_display));
+                message::info(&format!("  Source: {}", source_display));
             }
             Action::SourceMissing { source_display, .. } => {
-                msg.error(&format!("Source missing: {}", source_display));
+                message::error(&format!("Source missing: {}", source_display));
             }
         }
     }
 }
 
 fn execute(plan: Vec<Action>, target_profile: &str, context: &mut Context) -> Result<(), Box<dyn Error>> {
-    let msg = &context.message;
     let strategy = &context.manager.config.get_settings().on_conflict;
 
     for action in plan {
@@ -227,7 +227,7 @@ fn execute(plan: Vec<Action>, target_profile: &str, context: &mut Context) -> Re
                 target_path,
             } => {
                 fs::remove_file(&target_path)?;
-                msg.delete(&format!("Removed ghost link: {}", target_display));
+                message::delete(&format!("Removed ghost link: {}", target_display));
                 context.manager.state.remove_links(|l| l.target == target_display)?;
             }
             Action::CreateNewLink {
@@ -238,7 +238,7 @@ fn execute(plan: Vec<Action>, target_profile: &str, context: &mut Context) -> Re
                 is_dir,
             } => {
                 context.manager.symlink.create(&source_path, &target_path)?;
-                msg.link(&format!("{} -> {}", source_display, target_display));
+                message::link(&format!("{} -> {}", source_display, target_display));
                 context.manager.state.add_link(source_display, target_display, is_dir)?;
             }
             Action::UpdateState {
@@ -246,7 +246,7 @@ fn execute(plan: Vec<Action>, target_profile: &str, context: &mut Context) -> Re
                 target_display,
                 is_dir,
             } => {
-                msg.success(&format!("{} -> {} (already linked)", source_display, target_display));
+                message::success(&format!("{} -> {} (already linked)", source_display, target_display));
                 context.manager.state.add_link(source_display, target_display, is_dir)?;
             }
             Action::Conflict {
@@ -258,7 +258,7 @@ fn execute(plan: Vec<Action>, target_profile: &str, context: &mut Context) -> Re
             } => {
                 let action = match strategy {
                     None => {
-                        msg.error(&format!("Conflict: {} -> {} ({})", source_display, target_display, kind));
+                        message::error(&format!("Conflict: {} -> {} ({})", source_display, target_display, kind));
                         ConflictAction::prompt(&kind).unwrap()
                     }
                     Some(a) => a.clone(),
@@ -272,13 +272,13 @@ fn execute(plan: Vec<Action>, target_profile: &str, context: &mut Context) -> Re
                 }
             }
             Action::SourceMissing { source_display, .. } => {
-                msg.error(&format!("Source missing: {}", source_display));
+                message::error(&format!("Source missing: {}", source_display));
             }
         }
     }
 
     context.manager.state.set_active_profile(target_profile.to_string())?;
-    msg.success(&format!("Switched to profile '{}'", target_profile));
+    message::success(&format!("Switched to profile '{}'", target_profile));
 
     Ok(())
 }

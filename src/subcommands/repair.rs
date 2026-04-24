@@ -1,6 +1,7 @@
 use crate::context::Context;
 use crate::context::manager::symlink::SymlinkStatus;
-use crate::utils::expand_tilde;
+use crate::utils::common::expand_tilde;
+use crate::utils::message;
 use colored::Colorize;
 use std::error::Error;
 use std::path::PathBuf;
@@ -40,15 +41,14 @@ pub fn run(context: &mut Context) -> Result<(), Box<dyn Error>> {
     let plan = generate_plan(context)?;
 
     if plan.is_empty() {
-        context.message.success("No repairs needed. All symlinks are healthy.");
+        message::success("No repairs needed. All symlinks are healthy.");
         return Ok(());
     }
 
     // 2. DISPATCH
-    if context.dry_run {
-        execute_dry_run(&plan, context);
-    } else {
-        execute(plan, context)?;
+    match context.dry_run {
+        true => execute_dry_run(&plan),
+        false => execute(plan, context)?,
     }
 
     Ok(())
@@ -137,8 +137,7 @@ fn generate_plan(context: &Context) -> Result<Vec<Action>, Box<dyn Error>> {
     Ok(plan)
 }
 
-fn execute_dry_run(plan: &[Action], context: &Context) {
-    let msg = &context.message;
+fn execute_dry_run(plan: &[Action]) {
     println!("{}", "Repair Plan (Dry Run):".bold().blue());
 
     for action in plan {
@@ -148,37 +147,36 @@ fn execute_dry_run(plan: &[Action], context: &Context) {
                 target_display,
                 ..
             } => {
-                msg.success(&format!("Would link {} -> {} (dry run)", source_display, target_display));
+                message::success(&format!("Would link {} -> {} (dry run)", source_display, target_display));
             }
             Action::Relink {
                 source_display,
                 target_display,
                 ..
             } => {
-                msg.success(&format!("Would relink {} -> {} (dry run)", source_display, target_display));
+                message::success(&format!("Would relink {} -> {} (dry run)", source_display, target_display));
             }
             Action::UpdateState {
                 source_display,
                 target_display,
                 ..
             } => {
-                msg.info(&format!("Would add to state: {} -> {} (dry run)", source_display, target_display));
+                message::info(&format!("Would add to state: {} -> {} (dry run)", source_display, target_display));
             }
             Action::NotifyConflict { target_display } => {
-                msg.error(&format!(
+                message::error(&format!(
                     "Conflict at {}: File/Dir exists. Manual intervention required.",
                     target_display
                 ));
             }
             Action::NotifySourceMissing { source_display, .. } => {
-                msg.unlink(&format!("Source missing: {}", source_display));
+                message::miss(&format!("Source missing: {}", source_display));
             }
         }
     }
 }
 
 fn execute(plan: Vec<Action>, context: &mut Context) -> Result<(), Box<dyn Error>> {
-    let msg = &context.message;
     println!("{}", "Executing Repair...".bold().blue());
 
     for action in plan {
@@ -190,7 +188,7 @@ fn execute(plan: Vec<Action>, context: &mut Context) -> Result<(), Box<dyn Error
                 target_path,
                 is_dir,
             } => {
-                msg.success(&format!("Linking {} -> {}", source_display, target_display));
+                message::success(&format!("Linking {} -> {}", source_display, target_display));
                 context.manager.symlink.create(&source_path, &target_path)?;
                 context.manager.state.add_link(source_display, target_display, is_dir)?;
             }
@@ -201,7 +199,7 @@ fn execute(plan: Vec<Action>, context: &mut Context) -> Result<(), Box<dyn Error
                 target_path,
                 is_dir,
             } => {
-                msg.success(&format!("Relinking {} -> {}", source_display, target_display));
+                message::success(&format!("Relinking {} -> {}", source_display, target_display));
                 if target_path.exists() || target_path.is_symlink() {
                     std::fs::remove_file(&target_path)?;
                 }
@@ -213,21 +211,21 @@ fn execute(plan: Vec<Action>, context: &mut Context) -> Result<(), Box<dyn Error
                 target_display,
                 is_dir,
             } => {
-                msg.info(&format!("Updating state for: {} -> {}", source_display, target_display));
+                message::info(&format!("Updating state for: {} -> {}", source_display, target_display));
                 context.manager.state.add_link(source_display, target_display, is_dir)?;
             }
             Action::NotifyConflict { target_display } => {
-                msg.error(&format!(
+                message::error(&format!(
                     "Conflict at {}: File/Dir exists. Manual intervention required.",
                     target_display
                 ));
             }
             Action::NotifySourceMissing { source_display, .. } => {
-                msg.unlink(&format!("Source missing: {}", source_display));
+                message::miss(&format!("Source missing: {}", source_display));
             }
         }
     }
 
-    msg.success("Repair complete.");
+    message::success("Repair complete.");
     Ok(())
 }

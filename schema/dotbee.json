@@ -26,21 +26,6 @@
             }
           }
         },
-        "icon_style": {
-          "type": "string",
-          "description": "The style of icons to use in the CLI output",
-          "enum": ["text", "emoji", "nerdfont"],
-          "default": "text",
-          "x-taplo": {
-            "docs": {
-              "enumValues": [
-                "Plain text (e.g., [DONE], [ERROR])",
-                "Emoji icons",
-                "Nerd Font icons"
-              ]
-            }
-          }
-        },
         "auto_detect_profile": {
           "type": "boolean",
           "description": "Automatically select a profile based on the system's hostname when no profile is specified",

@@ -1,7 +1,5 @@
 pub mod conflict;
-pub mod icons;
 
-use self::icons::IconStyle;
 pub use conflict::ConflictAction;
 use indexmap::IndexMap;
 use serde::Deserialize;
@@ -22,7 +20,6 @@ struct Config {
 pub struct Settings {
     #[serde(default, deserialize_with = "conflict::deserialize_conflict_action")]
     pub on_conflict: Option<ConflictAction>,
-    pub icon_style: Option<IconStyle>,
     pub auto_detect_profile: Option<bool>,
 }
 

@@ -1,4 +1,5 @@
 use crate::context::Context;
+use crate::utils::message;
 use colored::Colorize;
 use std::error::Error;
 use std::fs;
@@ -14,10 +15,9 @@ pub fn run(context: &mut Context) -> Result<(), Box<dyn Error>> {
         .map(|p| p.to_path_buf())
         .unwrap_or(PathBuf::from("dotbee.toml"));
     let config_path = Path::new(&path_string);
-    let message = &context.message;
 
     if config_path.exists() {
-        message.error(&format!(
+        message::error(&format!(
             "{} already exists in the current directory.",
             path_string.to_string_lossy()
         ));
@@ -25,7 +25,7 @@ pub fn run(context: &mut Context) -> Result<(), Box<dyn Error>> {
     }
 
     if context.dry_run {
-        message.success(&format!("Would initialize {} (dry run)", path_string.to_string_lossy()));
+        message::success(&format!("Would initialize {} (dry run)", path_string.to_string_lossy()));
         return Ok(());
     }
 
@@ -39,7 +39,7 @@ pub fn run(context: &mut Context) -> Result<(), Box<dyn Error>> {
         context.manager.state.set_dotfiles_path(Some(parent))?;
     }
 
-    message.success(&format!("Successfully initialized {}", path_string.to_string_lossy()));
+    message::success(&format!("Successfully initialized {}", path_string.to_string_lossy()));
     println!(
         "Edit the file to configure your dotfiles, then run {} to apply.",
         "dotbee switch <profile>".yellow()

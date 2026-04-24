@@ -1,3 +1,4 @@
+use nix::unistd::gethostname;
 use std::path::PathBuf;
 
 /// Expands a tilde (`~`) at the start of a path to the user's home directory.
@@ -20,7 +21,6 @@ pub fn expand_tilde(path_str: &str) -> PathBuf {
 
 /// Retrieves the system's hostname.
 pub fn get_hostname() -> String {
-    use nix::unistd::gethostname;
     let hostname = gethostname().expect("Couldn't get hostname");
     hostname.into_string().expect("Failed to parse hostname")
 }
