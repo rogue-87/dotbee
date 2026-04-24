@@ -13,15 +13,14 @@ _Goal: Solidify the core specification and ensure reliability._
 - [x] **Wiki:** Write a wiki that explains everything about dotbee.
 - [x] **Usage Examples:** Write usage examples and troubleshooting tips.
 - [x] **Base Directory Resolution:** Fix CWD-dependency by resolving relative paths from the config file's location.
-- [x] **Core Testing:** Implement a comprehensive test suite for symlink management (creation, purging, repair) and edge cases.
-- [ ] **Cross-Platform Support:** Verify and polish experience on macOS and Termux.
 - [ ] **Explicit Defaults:** Warn user when running without a configuration file.
+- [ ] **Core Testing:** Implement a comprehensive test suite for symlink management (creation, purging, repair) and edge cases.
+- [ ] **Cross-Platform Support:** Verify and polish experience on macOS and Termux.
 
 ## Phase 2: Safety & Reliability (Beta)
 
 _Goal: Ensure users can trust Dotbee with their configuration files._
 
-- [ ] **Auto-Backup System:** Automatically back up existing files before they are replaced or modified by a `switch`.
 - [x] **Transaction-Based Execution:** Separate planning from execution to enable reliable dry-runs and potential undo functionality.
 - [ ] **Unified Error Recovery:** Implement standard strategy for partial failures during multi-file operations.
 - [ ] **State Resilience:** Improve error reporting for corrupted state files instead of silent failure.
@@ -30,9 +29,7 @@ _Goal: Ensure users can trust Dotbee with their configuration files._
 - [ ] **Link Type Verification:** Proactively verify file vs. directory mismatches during planning.
 - [ ] **Robust File Operations:** Handle cross-filesystem moves in `Adopt` strategy and remove unsafe `.unwrap()` calls.
 - [ ] **Graceful Signal Handling:** Handle SIGINT (Ctrl+C) to safely finish or rollback operations.
-- [ ] **Enhanced Error Recovery:** Improve the `repair` command and provide more meaningful error messages.
 - [ ] **State Consistency:** Ensure `repair` synchronizes `state.json` with the current configuration.
-- [ ] **Robust Testing:** Add tests for core functionality and complex edge cases.
 - [ ] **CI Integration:** Fully utilize GitLab CI for automated linting, testing, and multi-platform builds.
 
 ## Phase 3: Portability & Polish (`v1.0`)
