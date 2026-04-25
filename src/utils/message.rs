@@ -1,29 +1,29 @@
 use colored::Colorize;
 
 pub fn success(msg: &str) {
-    println!("{}{}", "DONE  ".green(), msg);
+    println!("{}: {}", "[DONE]".green(), msg);
 }
 
 pub fn error(msg: &str) {
-    eprintln!("{}{}", "ERR   ".red(), msg);
+    eprintln!("{}: {}", "[ERROR]".red(), msg);
 }
 
 pub fn warning(msg: &str) {
-    println!("{}{}", "WARN  ".yellow(), msg);
+    println!("{}: {}", "[WARN]".yellow(), msg);
 }
 
 pub fn info(msg: &str) {
-    println!("{}{}", "INFO  ".blue(), msg);
+    println!("{}: {}", "[INFO]".blue(), msg);
 }
 
 pub fn link(msg: &str) {
-    println!("{}{}", "LINK  ".cyan(), msg);
+    println!("{}: {}", "[LINK]".cyan(), msg);
 }
 
 pub fn miss(msg: &str) {
-    println!("{}{}", "MISS  ".purple(), msg);
+    println!("{}: {}", "[MISS]".purple(), msg);
 }
 
 pub fn delete(msg: &str) {
-    println!("{}{}", "DEL   ".red(), msg);
+    println!("{}: {}", "[DELETE]".red(), msg);
 }
