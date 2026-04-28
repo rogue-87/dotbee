@@ -69,47 +69,6 @@ impl SymlinkManager {
         std::os::unix::fs::symlink(source, destination)?;
         Ok(())
     }
-
-    /// Force creates a symlink by removing any existing file or directory at the destination.
-    /// This is a convenience method for handling conflicts automatically.
-    ///
-    /// # Arguments
-    /// * `source` - The path to the original file or directory that the symlink will point to.
-    /// * `destination` - The path where the symbolic link will be created.
-    ///
-    /// # Errors
-    /// Returns an error if removal of existing files or symlink creation fails.
-    pub fn _force_create(&self, source: &Path, destination: &Path) -> anyhow::Result<(), anyhow::Error> {
-        // Remove existing file/directory/symlink if it exists
-        self._remove_existing(destination)?;
-        self.create(source, destination)
-    }
-
-    /// Safely removes an existing file, directory, or symlink at the given path.
-    /// Does nothing if the path doesn't exist.
-    ///
-    /// # Arguments
-    /// * `path` - The path to remove.
-    ///
-    /// # Errors
-    /// Returns an error if removal fails (but not if path doesn't exist).
-    pub fn _remove_existing(&self, path: &Path) -> anyhow::Result<(), anyhow::Error> {
-        if !path.exists() {
-            return Ok(());
-        }
-
-        let metadata = fs::symlink_metadata(path)?;
-
-        if metadata.is_symlink() {
-            fs::remove_file(path)?;
-        } else if metadata.is_dir() {
-            fs::remove_dir_all(path)?;
-        } else {
-            fs::remove_file(path)?;
-        }
-
-        Ok(())
-    }
 }
 
 impl Default for SymlinkManager {
