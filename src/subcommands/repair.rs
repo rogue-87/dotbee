@@ -3,7 +3,6 @@ use crate::context::manager::symlink::SymlinkStatus;
 use crate::utils::common::expand_tilde;
 use crate::utils::message;
 use colored::Colorize;
-use std::error::Error;
 use std::path::PathBuf;
 
 /// Actions that the repair command can take.
@@ -36,7 +35,7 @@ pub enum Action {
     },
 }
 
-pub fn run(context: &mut Context) -> Result<(), Box<dyn Error>> {
+pub fn run(context: &mut Context) -> anyhow::Result<(), anyhow::Error> {
     // 1. GENERATE THE PLAN
     let plan = generate_plan(context)?;
 
@@ -54,7 +53,7 @@ pub fn run(context: &mut Context) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn generate_plan(context: &Context) -> Result<Vec<Action>, Box<dyn Error>> {
+fn generate_plan(context: &Context) -> anyhow::Result<Vec<Action>, anyhow::Error> {
     let mut plan = Vec::new();
     let dotfiles_root = context
         .manager
@@ -176,7 +175,7 @@ fn execute_dry_run(plan: &[Action]) {
     }
 }
 
-fn execute(plan: Vec<Action>, context: &mut Context) -> Result<(), Box<dyn Error>> {
+fn execute(plan: Vec<Action>, context: &mut Context) -> anyhow::Result<(), anyhow::Error> {
     println!("{}", "Executing Repair...".bold().blue());
 
     for action in plan {

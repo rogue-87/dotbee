@@ -4,9 +4,8 @@ use crate::utils::common::expand_tilde;
 use crate::utils::message;
 use colored::Colorize;
 use indexmap::IndexMap;
-use std::error::Error;
 
-pub fn run(context: &Context) -> Result<(), Box<dyn Error>> {
+pub fn run(context: &Context) -> anyhow::Result<(), anyhow::Error> {
     println!("{}", "Dotbee Doctor Report\n".bold().underline());
 
     let mut config_links: IndexMap<String, String> = indexmap::IndexMap::new();
@@ -56,7 +55,7 @@ pub fn run(context: &Context) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn check_ghost_links(config_links: &IndexMap<String, String>, context: &Context) -> Result<(), Box<dyn Error>> {
+fn check_ghost_links(config_links: &IndexMap<String, String>, context: &Context) -> anyhow::Result<(), anyhow::Error> {
     let mut ghosts = Vec::new();
     for link in context.manager.state.get_links() {
         if !config_links.contains_key(&link.target) {
@@ -75,7 +74,7 @@ fn check_ghost_links(config_links: &IndexMap<String, String>, context: &Context)
     Ok(())
 }
 
-fn check_links(links: &IndexMap<String, String>, context: &Context) -> Result<(), Box<dyn Error>> {
+fn check_links(links: &IndexMap<String, String>, context: &Context) -> anyhow::Result<(), anyhow::Error> {
     let dotfiles_root = context
         .manager
         .state

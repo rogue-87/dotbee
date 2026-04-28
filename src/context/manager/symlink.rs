@@ -1,4 +1,4 @@
-use std::{error::Error, fs, path::Path};
+use std::{fs, path::Path};
 
 #[derive(Debug, PartialEq)]
 pub enum SymlinkStatus {
@@ -61,7 +61,7 @@ impl SymlinkManager {
     /// This function will return an error if:
     /// * fails to create parent directories.
     /// * fails to create the symbolic link.
-    pub fn create(&self, source: &Path, destination: &Path) -> Result<(), Box<dyn Error>> {
+    pub fn create(&self, source: &Path, destination: &Path) -> anyhow::Result<(), anyhow::Error> {
         if let Some(parent) = destination.parent() {
             fs::create_dir_all(parent)?;
         }
@@ -79,7 +79,7 @@ impl SymlinkManager {
     ///
     /// # Errors
     /// Returns an error if removal of existing files or symlink creation fails.
-    pub fn _force_create(&self, source: &Path, destination: &Path) -> Result<(), Box<dyn Error>> {
+    pub fn _force_create(&self, source: &Path, destination: &Path) -> anyhow::Result<(), anyhow::Error> {
         // Remove existing file/directory/symlink if it exists
         self._remove_existing(destination)?;
         self.create(source, destination)
@@ -93,7 +93,7 @@ impl SymlinkManager {
     ///
     /// # Errors
     /// Returns an error if removal fails (but not if path doesn't exist).
-    pub fn _remove_existing(&self, path: &Path) -> Result<(), Box<dyn Error>> {
+    pub fn _remove_existing(&self, path: &Path) -> anyhow::Result<(), anyhow::Error> {
         if !path.exists() {
             return Ok(());
         }

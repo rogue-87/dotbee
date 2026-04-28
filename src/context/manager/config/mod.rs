@@ -1,9 +1,9 @@
 pub mod conflict;
 
+use anyhow::anyhow;
 pub use conflict::ConflictAction;
 use indexmap::IndexMap;
 use serde::Deserialize;
-use std::error::Error;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -39,7 +39,7 @@ pub struct ConfigManager {
 }
 
 impl ConfigManager {
-    pub fn load(path: Option<String>) -> Result<Self, Box<dyn Error>> {
+    pub fn load(path: Option<String>) -> anyhow::Result<Self, anyhow::Error> {
         let path_str = path.unwrap_or_else(|| "dotbee.toml".to_string());
         let config_path = Path::new(&path_str);
 
@@ -57,11 +57,13 @@ impl ConfigManager {
         Ok(Self { config, config_path })
     }
 
-    pub fn get_profile(&self, name: &str) -> Result<&Profile, Box<dyn Error>> {
-        let profiles = self.config.profiles.as_ref().ok_or("No profiles defined in configuration.")?;
-        profiles
-            .get(name)
-            .ok_or_else(|| format!("Profile '{}' not found in configuration.", name).into())
+    pub fn get_profile(&self, name: &str) -> anyhow::Result<&Profile, anyhow::Error> {
+        let profiles = self
+            .config
+            .profiles
+            .as_ref()
+            .ok_or(anyhow!("No profiles defined in configuration."))?;
+        profiles.get(name).ok_or(anyhow!("Profile '{}' not found in configuration.", name))
     }
 
     pub fn list_profiles(&self) -> Vec<&str> {

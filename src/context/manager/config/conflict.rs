@@ -1,6 +1,5 @@
 use demand::{DemandOption, Select, Theme};
 use serde::{Deserialize, Deserializer};
-use std::error::Error;
 use std::fmt::{Display, Formatter};
 
 #[derive(Debug, Clone, Deserialize, PartialEq)]
@@ -55,7 +54,7 @@ impl Display for ConflictAction {
 impl ConflictAction {
     /// In the occurance of a problem, the user will be given multiple choices
     /// on how to handle the problem.
-    pub fn prompt(kind: &str) -> Result<ConflictAction, Box<dyn Error>> {
+    pub fn prompt(kind: &str) -> anyhow::Result<ConflictAction, anyhow::Error> {
         let selection = Select::new("Conflict")
             .description(format!("Conflict occurred of kind: {}.\nhow do you want to handle it?", kind).as_str())
             .theme(&Theme::base16())

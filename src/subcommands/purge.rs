@@ -1,7 +1,7 @@
 use crate::utils::common::expand_tilde;
 use crate::{context::Context, utils::message};
 use colored::Colorize;
-use std::{error::Error, fs, io, path::PathBuf};
+use std::{fs, io, path::PathBuf};
 
 /// The types of actions our purge command can take.
 pub enum Action {
@@ -10,7 +10,7 @@ pub enum Action {
     NotifyNotASymlink { target_display: String, _path: PathBuf },
 }
 
-pub fn run(context: &mut Context) -> Result<(), Box<dyn Error>> {
+pub fn run(context: &mut Context) -> anyhow::Result<(), anyhow::Error> {
     // 1. GENERATE THE PLAN
     // This always runs, fixing the previous dry-run bug.
     let plan = generate_plan(context);
@@ -66,7 +66,7 @@ fn generate_plan(context: &Context) -> Vec<Action> {
     plan
 }
 
-fn execute(plan: Vec<Action>, context: &mut Context) -> Result<(), Box<dyn Error>> {
+fn execute(plan: Vec<Action>, context: &mut Context) -> anyhow::Result<(), anyhow::Error> {
     println!("{}", "Executing Purge...".bold().red());
 
     for action in plan {

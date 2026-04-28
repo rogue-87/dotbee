@@ -1,13 +1,12 @@
 use crate::context::Context;
 use crate::utils::message;
 use colored::Colorize;
-use std::error::Error;
 use std::fs;
 use std::path::{Path, PathBuf};
 
 const DEFAULT_CONFIG: &str = include_str!("../context/manager/config/dotbee.toml");
 
-pub fn run(context: &mut Context) -> Result<(), Box<dyn Error>> {
+pub fn run(context: &mut Context) -> anyhow::Result<(), anyhow::Error> {
     let path_string = context
         .manager
         .config

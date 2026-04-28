@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::error::Error;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -52,7 +51,7 @@ pub struct StateManager {
 }
 
 impl StateManager {
-    pub fn load() -> Result<Self, Box<dyn Error>> {
+    pub fn load() -> anyhow::Result<Self, anyhow::Error> {
         let state = State::load()?;
         Ok(Self { state })
     }
@@ -61,7 +60,7 @@ impl StateManager {
         self.state.active_profile.as_deref()
     }
 
-    pub fn set_active_profile(&mut self, profile: String) -> Result<(), Box<dyn Error>> {
+    pub fn set_active_profile(&mut self, profile: String) -> anyhow::Result<(), anyhow::Error> {
         self.state.active_profile = Some(profile);
         self.state.save()?;
         Ok(())
@@ -71,7 +70,7 @@ impl StateManager {
         self.state.dotfiles_path.as_deref()
     }
 
-    pub fn set_dotfiles_path(&mut self, path: Option<PathBuf>) -> Result<(), Box<dyn Error>> {
+    pub fn set_dotfiles_path(&mut self, path: Option<PathBuf>) -> anyhow::Result<(), anyhow::Error> {
         self.state.dotfiles_path = path;
         self.state.save()?;
         Ok(())
@@ -81,7 +80,7 @@ impl StateManager {
         &self.state.links
     }
 
-    pub fn add_link(&mut self, source: String, target: String, is_dir: bool) -> Result<(), Box<dyn Error>> {
+    pub fn add_link(&mut self, source: String, target: String, is_dir: bool) -> anyhow::Result<(), anyhow::Error> {
         let link = Link { source, target, is_dir };
         if !self.state.links.contains(&link) {
             self.state.links.push(link);
@@ -90,7 +89,7 @@ impl StateManager {
         Ok(())
     }
 
-    pub fn remove_links<F>(&mut self, predicate: F) -> Result<usize, Box<dyn Error>>
+    pub fn remove_links<F>(&mut self, predicate: F) -> anyhow::Result<usize, anyhow::Error>
     where
         F: Fn(&Link) -> bool,
     {
@@ -103,7 +102,7 @@ impl StateManager {
         Ok(removed)
     }
 
-    pub fn clear(&mut self) -> Result<(), Box<dyn Error>> {
+    pub fn clear(&mut self) -> anyhow::Result<(), anyhow::Error> {
         self.state = State::default();
         self.state.save()?;
         Ok(())

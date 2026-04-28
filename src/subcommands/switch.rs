@@ -5,10 +5,10 @@ use crate::{
     },
     utils::message,
 };
+use anyhow::anyhow;
 use colored::Colorize;
 use indexmap::IndexMap;
 use std::{
-    error::Error,
     fs,
     path::{Path, PathBuf},
 };
@@ -48,12 +48,12 @@ pub enum Action {
     },
 }
 
-pub fn run(profile_name: Option<String>, context: &mut Context) -> Result<(), Box<dyn Error>> {
+pub fn run(profile_name: Option<String>, context: &mut Context) -> anyhow::Result<(), anyhow::Error> {
     let target_profile = match profile_name {
         Some(name) => name,
         None => {
             if !context.manager.config.get_settings().auto_detect_profile.unwrap_or(false) {
-                return Err("No profile specified and auto_detect_profile is disabled.".into());
+                return Err(anyhow!("No profile specified and auto_detect_profile is disabled."));
             }
 
             let hostname = get_hostname();
@@ -78,7 +78,7 @@ pub fn run(profile_name: Option<String>, context: &mut Context) -> Result<(), Bo
     Ok(())
 }
 
-fn generate_plan(target_profile: &str, context: &Context) -> Result<Vec<Action>, Box<dyn Error>> {
+fn generate_plan(target_profile: &str, context: &Context) -> anyhow::Result<Vec<Action>, anyhow::Error> {
     let mut plan = Vec::new();
     let dotfiles_root = context
         .manager
@@ -217,7 +217,7 @@ fn execute_dry(plan: &[Action], target_profile: &str) {
     }
 }
 
-fn execute(plan: Vec<Action>, target_profile: &str, context: &mut Context) -> Result<(), Box<dyn Error>> {
+fn execute(plan: Vec<Action>, target_profile: &str, context: &mut Context) -> anyhow::Result<(), anyhow::Error> {
     let strategy = &context.manager.config.get_settings().on_conflict;
 
     for action in plan {
@@ -289,7 +289,7 @@ fn handle_conflict(
     destination: &PathBuf,
     rel_source: &str,
     context: &Context,
-) -> Result<(), Box<dyn Error>> {
+) -> anyhow::Result<(), anyhow::Error> {
     let dotfiles_root = context
         .manager
         .state
@@ -299,7 +299,7 @@ fn handle_conflict(
 
     match action {
         ConflictAction::Skip => println!("  Skipped {}", destination.display()),
-        ConflictAction::Abort => return Err("Operation aborted by user.".into()),
+        ConflictAction::Abort => return Err(anyhow!("Operation aborted by user.")),
         ConflictAction::Overwrite => {
             if destination.is_dir() {
                 fs::remove_dir_all(destination).unwrap();

@@ -4,7 +4,6 @@ pub mod symlink;
 
 use config::ConfigManager;
 use state::StateManager;
-use std::error::Error;
 use symlink::SymlinkManager;
 
 /// A part of the context singleton. Responsible for managing the following:
@@ -18,7 +17,7 @@ pub struct Manager {
 }
 
 impl Manager {
-    pub fn new(path_to_config: Option<String>) -> Result<Self, Box<dyn Error>> {
+    pub fn new(path_to_config: Option<String>) -> anyhow::Result<Self, anyhow::Error> {
         let mut state = StateManager::load()?;
 
         // Determine effective config path from explicit arg or stored dotfiles path

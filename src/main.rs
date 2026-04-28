@@ -2,9 +2,8 @@ use clap::Parser;
 use dotbee::cli::{Cli, SubCommand};
 use dotbee::context::Context;
 use dotbee::subcommands;
-use std::error::Error;
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> anyhow::Result<(), anyhow::Error> {
     let dotbee = Cli::parse();
     let mut context = Context::new(dotbee.config, dotbee.dry_run)?;
 

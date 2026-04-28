@@ -1,9 +1,8 @@
 use crate::context::Context;
 use colored::Colorize;
 use indexmap::IndexMap;
-use std::error::Error;
 
-pub fn run(context: &Context) -> Result<(), Box<dyn Error>> {
+pub fn run(context: &Context) -> anyhow::Result<(), anyhow::Error> {
     // List global symlinks
     if let Some(global_links) = context.manager.config.get_global_links() {
         println!("{}", "global".yellow().bold());
