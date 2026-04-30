@@ -9,11 +9,30 @@ use anyhow::anyhow;
 use colored::Colorize;
 use indexmap::IndexMap;
 use std::{
+    fmt::{Display, Formatter},
     fs,
     path::{Path, PathBuf},
 };
 
 use crate::utils::common::{expand_tilde, get_hostname};
+
+pub enum ConflictKind {
+    Symlink,
+    FileOrDir,
+}
+
+impl Display for ConflictKind {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                ConflictKind::Symlink => "Symlink",
+                ConflictKind::FileOrDir => "File/Dir",
+            }
+        )
+    }
+}
 
 /// Actions for the switch command.
 /// These are possible list of actions that
@@ -40,7 +59,7 @@ pub enum Action {
         target_display: String,
         source_path: PathBuf,
         target_path: PathBuf,
-        kind: String, // "Symlink" or "File/Dir"
+        kind: ConflictKind,
     },
     SourceMissing {
         source_display: String,
@@ -150,19 +169,22 @@ fn generate_plan(target_profile: &str, context: &Context) -> anyhow::Result<Vec<
                     is_dir,
                 });
             }
-            SymlinkStatus::ConflictingSymlink | SymlinkStatus::ConflictingFileOrDir => {
-                let kind = if status == SymlinkStatus::ConflictingSymlink {
-                    "Symlink"
-                } else {
-                    "File/Dir"
-                };
-
+            SymlinkStatus::ConflictingSymlink => {
                 plan.push(Action::Conflict {
                     source_display: source_str.clone(),
                     target_display: target_str.clone(),
                     source_path,
                     target_path,
-                    kind: kind.to_string(),
+                    kind: ConflictKind::Symlink,
+                });
+            }
+            SymlinkStatus::ConflictingFileOrDir => {
+                plan.push(Action::Conflict {
+                    source_display: source_str.clone(),
+                    target_display: target_str.clone(),
+                    source_path,
+                    target_path,
+                    kind: ConflictKind::FileOrDir,
                 });
             }
         }
