@@ -1,7 +1,7 @@
 [package]
 name = "dotbee"
 version = "0.4.0"
-authors = ["Rogue87 <rogue87@tuta.io>"]
+authors = ["Rogue.Sly <rogue87@tuta.io>"]
 description = "Dotfiles manager designed for ease of use"
 edition = "2024"
 repository = "https://gitlab.com/rogue-sly/dotbee"
