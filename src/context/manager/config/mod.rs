@@ -15,12 +15,21 @@ struct Config {
     profiles: Option<IndexMap<String, Profile>>,
 }
 
-#[derive(Debug, Deserialize, Default, Clone)]
+#[derive(Debug, Deserialize, Clone)]
 #[serde(default)]
 pub struct Settings {
     #[serde(default, deserialize_with = "conflict::deserialize_conflict_action")]
     pub on_conflict: Option<ConflictAction>,
     pub auto_detect_profile: Option<bool>,
+}
+
+impl Default for Settings {
+    fn default() -> Self {
+        Self {
+            on_conflict: None,
+            auto_detect_profile: Some(false),
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Clone)]

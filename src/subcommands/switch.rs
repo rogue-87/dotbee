@@ -71,7 +71,7 @@ pub fn run(profile_name: Option<String>, context: &mut Context) -> anyhow::Resul
     let target_profile = match profile_name {
         Some(name) => name,
         None => {
-            if !context.manager.config.get_settings().auto_detect_profile.unwrap_or(false) {
+            if !context.manager.config.get_settings().auto_detect_profile.unwrap_or_default() {
                 return Err(anyhow!("No profile specified and auto_detect_profile is disabled."));
             }
 
