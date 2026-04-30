@@ -1,7 +1,7 @@
+use crate::subcommands::switch::ConflictKind;
 use demand::{DemandOption, Select, Theme};
 use serde::{Deserialize, Deserializer};
 use std::fmt::{Display, Formatter};
-use crate::subcommands::switch::ConflictKind;
 
 #[derive(Debug, Clone, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
@@ -25,11 +25,12 @@ where
     let s: Option<String> = Option::deserialize(deserializer)?;
 
     match s.as_deref() {
+        // if it's ask or empty then prompt the user on how to handle every conflict
+        Some("ask") | None => Ok(None),
         Some("abort") => Ok(Some(ConflictAction::Abort)),
         Some("adopt") => Ok(Some(ConflictAction::Adopt)),
         Some("overwrite") => Ok(Some(ConflictAction::Overwrite)),
         Some("skip") => Ok(Some(ConflictAction::Skip)),
-        Some("ask") | None => Ok(None),
         Some(other) => Err(serde::de::Error::custom(format!(
             "unknown variant `{}`, expected one of `abort`, `adopt`, `overwrite`, `skip`, `ask`",
             other
