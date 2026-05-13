@@ -14,6 +14,12 @@
 - Rename managed_links -> links
 - Rename functions that has the word "managed" into ones that doesn't
 - Remove some unnecessary clones
+- Format messages nicely
+- Use anyhow crate for error handling
+- Remove unused code
+- Use ConflictKind enum instead of a String
+- Use sane defaults for settigns struct
+- Format and explain ask
 
 ### 📚 Documentation
 
@@ -31,6 +37,7 @@
 - Add a prerequisite
 - Add some doc comments
 - Revise plan
+- Get rid of more tasks because I'm lazy :D
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -54,6 +61,19 @@
 - Remove tempfile dependency
 - Comment out pre-push git hook
 - Add a mise.toml file for project tools
+- Use git-cliff for generating changelog
+- Update author name
+- Remove thiserror crate
+- Use tombi
+- Simplify gitlab-ci script
+- Setup cargo-deb and cargo-generate-rpm
+- Add packaging step
+- Fix potential issues in the gitlab-ci script
+- Make it possible to run the ci manually
+- Fuck my life
+- Finalize CI script
+- Update lefthook
+- Format lefthook.yml
 ## [0.4.0] - 2026-02-24
 
 ### 🐛 Bug Fixes

@@ -15,8 +15,7 @@ pre-commit:
 
     # Changelogs
     changelog:
-      run: "git-cliff -o CHANGELOG.md"
-      glob: "CHANGELOG.md"
+      run: "git-cliff -o CHANGELOG.md && git add CHANGELOG.md"
 
     # Linting/Code Checks
     clippy:
