@@ -74,6 +74,7 @@
 - Finalize CI script
 - Update lefthook
 - Format lefthook.yml
+- Update lefthook config once again
 ## [0.4.0] - 2026-02-24
 
 ### 🐛 Bug Fixes
