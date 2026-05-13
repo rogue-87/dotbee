@@ -77,6 +77,16 @@ release:
   release:
     tag_name: "$CI_COMMIT_TAG"
     name: "$BINARY_NAME $CI_COMMIT_TAG"
+    description: |
+      ## $BINARY_NAME $CI_COMMIT_TAG
+
+      ### Binaries
+      - Linux Musl x64
+      - Linux Musl aarch64
+      - RPM x64
+      - RPM aarch64
+      - DEB x64
+      - DEB aarch64
     assets:
       links:
         # x86_64

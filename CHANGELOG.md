@@ -1,4 +1,4 @@
-## [unreleased]
+## [0.5.0] - 2026-05-13
 
 ### 🚀 Features
 
@@ -75,6 +75,7 @@
 - Update lefthook
 - Format lefthook.yml
 - Update lefthook config once again
+- Bump dotbee to v0.5.0
 ## [0.4.0] - 2026-02-24
 
 ### 🐛 Bug Fixes
