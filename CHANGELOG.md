@@ -1,3 +1,8 @@
+## [unreleased]
+
+### 🐛 Bug Fixes
+
+- Put archive filetype
 ## [0.5.0] - 2026-05-13
 
 ### 🚀 Features
