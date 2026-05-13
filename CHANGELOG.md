@@ -76,6 +76,7 @@
 - Format lefthook.yml
 - Update lefthook config once again
 - Bump dotbee to v0.5.0
+- Add description to release stage
 ## [0.4.0] - 2026-02-24
 
 ### 🐛 Bug Fixes
