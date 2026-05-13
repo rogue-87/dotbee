@@ -13,6 +13,11 @@ pre-commit:
       glob: "*.toml"
       run: tombi format {staged_files}
 
+      # Changelogs
+    changelog:
+      run: "git-cliff -o CHANGELOG.md"
+      glob: "CHANGELOG.md"
+
     # Linting/Code Checks
     clippy:
       run: cargo clippy --all -- -D warnings
