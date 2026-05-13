@@ -16,8 +16,6 @@ workflow:
     - if: $CI_COMMIT_TAG
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-    - if: $CI_PIPELINE_SOURCE == 'web'
-    - if: $CI_PIPELINE_SOURCE == 'pipeline'
 
 .cargo_cache:
   cache:
@@ -45,8 +43,6 @@ build:
     - .cross_setup
   rules:
     - if: $CI_COMMIT_TAG
-    - if: $CI_PIPELINE_SOURCE == 'web' || $CI_PIPELINE_SOURCE == 'pipeline'
-      when: manual
   parallel:
     matrix:
       - TARGET: x86_64-unknown-linux-musl
@@ -72,8 +68,6 @@ pkg-deb:
     - .cross_setup
   rules:
     - if: $CI_COMMIT_TAG
-    - if: $CI_PIPELINE_SOURCE == 'web' || $CI_PIPELINE_SOURCE == 'pipeline'
-      when: manual
   parallel:
     matrix:
       - TARGET: x86_64-unknown-linux-musl
@@ -98,8 +92,6 @@ pkg-rpm:
     - .cross_setup
   rules:
     - if: $CI_COMMIT_TAG
-    - if: $CI_PIPELINE_SOURCE == 'web' || $CI_PIPELINE_SOURCE == 'pipeline'
-      when: manual
   parallel:
     matrix:
       - TARGET: x86_64-unknown-linux-musl
@@ -119,8 +111,6 @@ upload:
   image: curlimages/curl:latest
   rules:
     - if: $CI_COMMIT_TAG
-    - if: $CI_PIPELINE_SOURCE == 'web' || $CI_PIPELINE_SOURCE == 'pipeline'
-      when: manual
   needs:
     - job: build
     - job: pkg-deb
@@ -145,8 +135,6 @@ release:
     entrypoint: [""]
   rules:
     - if: $CI_COMMIT_TAG
-    - if: $CI_PIPELINE_SOURCE == 'web' || $CI_PIPELINE_SOURCE == 'pipeline'
-      when: manual
   needs:
     - job: build
     - job: upload
