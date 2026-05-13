@@ -9,9 +9,9 @@ pre-commit:
       glob: "*.rs"
       run: cargo fmt --all
 
-    taplo:
+    tombi:
       glob: "*.toml"
-      run: taplo format {staged_files}
+      run: tombi format {staged_files}
 
     # Linting/Code Checks
     clippy:

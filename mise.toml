@@ -1,4 +1,4 @@
 [tools]
 git-cliff = "latest"
 lefthook = "latest"
-taplo = "latest"
+tombi = "latest"
