@@ -13,7 +13,7 @@ pre-commit:
       glob: "*.toml"
       run: tombi format {staged_files}
 
-      # Changelogs
+    # Changelogs
     changelog:
       run: "git-cliff -o CHANGELOG.md"
       glob: "CHANGELOG.md"
