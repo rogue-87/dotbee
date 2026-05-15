@@ -7,6 +7,7 @@
 ### ⚙️ Miscellaneous Tasks
 
 - Specify asset type
+- Use podman for try-dotbee script
 ## [0.5.0] - 2026-05-13
 
 ### 🚀 Features
