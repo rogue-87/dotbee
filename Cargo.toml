@@ -1,6 +1,6 @@
 [package]
 name = "dotbee"
-version = "0.6.0"
+version = "0.6.1"
 authors = ["Rogue.Sly <rogue87@tuta.io>"]
 description = "Dotfiles manager designed for ease of use"
 edition = "2024"
