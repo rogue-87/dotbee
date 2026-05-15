@@ -1,4 +1,8 @@
-## [unreleased]
+## [0.6.0] - 2026-05-15
+
+### 🚀 Features
+
+- Add a config validation step
 
 ### 🐛 Bug Fixes
 
