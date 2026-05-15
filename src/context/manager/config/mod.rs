@@ -170,8 +170,10 @@ impl ConfigManager {
             sources
         };
 
-        // track destinations for duplicate check
-        let mut seen_destinations: Vec<&str> = Vec::new();
+        let global_links = link_sources
+            .iter()
+            .find(|(profile, _)| *profile == "global")
+            .map(|(_, links)| *links);
 
         for (section, links) in link_sources {
             for (destination, source) in links {
@@ -179,7 +181,6 @@ impl ConfigManager {
                 if destination.is_empty() {
                     errors.push(format!("[{}]: link destination is empty.", section));
                 }
-
                 if source.is_empty() {
                     errors.push(format!("[{}]: link source is empty for destination '{}'.", section, destination));
                 }
@@ -192,11 +193,15 @@ impl ConfigManager {
                     ));
                 }
 
-                // check for duplicate destinations
-                if seen_destinations.contains(&destination.as_str()) {
-                    errors.push(format!("Duplicate destination '{}' in section '{}'.", destination, section));
-                } else {
-                    seen_destinations.push(destination);
+                // check if a profile overrides a global link
+                if section != "global"
+                    && let Some(global) = global_links
+                    && global.contains_key(destination)
+                {
+                    errors.push(format!(
+                        "'{}' in section '{}' overrides an existing global link.",
+                        destination, section
+                    ));
                 }
 
                 // check source path existance

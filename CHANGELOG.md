@@ -1,3 +1,8 @@
+## [unreleased]
+
+### 🐛 Bug Fixes
+
+- Ensure duplicate check only occurs between the global profile and any other profile
 ## [0.6.0] - 2026-05-15
 
 ### 🚀 Features
@@ -12,6 +17,7 @@
 
 - Specify asset type
 - Use podman for try-dotbee script
+- Bump dotbee
 ## [0.5.0] - 2026-05-13
 
 ### 🚀 Features
