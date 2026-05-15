@@ -3,6 +3,10 @@
 ### 🐛 Bug Fixes
 
 - Put archive filetype
+
+### ⚙️ Miscellaneous Tasks
+
+- Specify asset type
 ## [0.5.0] - 2026-05-13
 
 ### 🚀 Features

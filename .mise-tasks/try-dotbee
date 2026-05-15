@@ -22,16 +22,16 @@ echo
 cross build --profile "${usage_profile?}" --target "${usage_target?}"
 
 echo "Building testing container image..."
-docker build -t dotbee-dev .
+podman build -t dotbee-dev .
 
 # Detect if we are using podman
 PODMAN_FLAGS=""
-if docker --version | grep -qi podman; then
+if podman --version | grep -qi podman; then
     PODMAN_FLAGS="--userns=keep-id"
 fi
 
 echo "Running testing container..."
-docker run --hostname="laptop" -it --rm \
+podman run --hostname="laptop" -it --rm \
     $PODMAN_FLAGS \
     -v "$(pwd)/target/${usage_target}/${BUILD_MODE}/dotbee:/usr/local/bin/dotbee:Z" \
     dotbee-dev
